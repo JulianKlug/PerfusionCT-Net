@@ -2,6 +2,11 @@
 A UNet for the analysis of perfusion CT imaging in the setting of acute ischemic stroke. 
 
 
-# Prerequisites
+## Installation
+`pip install -e .`
 
-- **Attention Gated Networks** needs to be in path and setup (download the repo, then use `python setup.py install` and `pip install -e .` in the directory)
+## References
+
+- This is a fork of *ozan-oktay/Attention-Gated-Networks*   
+- "Attention U-Net: Learning Where to Look for the Pancreas", MIDL'18, Amsterdam, [original paper](https://openreview.net/pdf?id=Skft7cijM) <br />
+
