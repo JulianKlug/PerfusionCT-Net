@@ -5,6 +5,10 @@ A UNet for the analysis of perfusion CT imaging in the setting of acute ischemic
 ## Installation
 `pip install -e .`
 
+##### Compatibility
+
+- Environment must use python 3.7 (for torch and CUDA compatibility)
+
 ## References
 
 - This is a fork of *ozan-oktay/Attention-Gated-Networks*   
