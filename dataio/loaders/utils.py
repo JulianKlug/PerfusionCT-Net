@@ -1,6 +1,6 @@
 def validate_images(image, label=None):
     if label is not None:
-        if image.shape[:-1] != label.shape:
+        if image.shape[:-1] != label.shape[:-1]:
             print('Error: mismatched size, image.shape = {0}, '
                   'label.shape = {1}'.format(image.shape, label.shape))
             raise(Exception('image and label sizes do not match'))

@@ -1,7 +1,7 @@
 {
   "training":{
     "arch_type": "gsd_pCT",
-    "n_epochs": 1000,
+    "n_epochs": 10,
     "save_epoch_freq": 10,
     "lr_policy": "step",
     "lr_decay_iters": 250,
@@ -16,7 +16,7 @@
     "display_single_pane_ncols": 0
   },
   "data_path": {
-    "gsd_pCT": "/Users/julian/temp/pct_unet_test/data_set.npz"
+    "gsd_pCT": "/home/klug/data/working_data/pct_unet_all_2016_2017/data_set.npz"
   },
   "augmentation": {
     "gsd_pCT": {

@@ -38,6 +38,7 @@ class GenevaStrokeDataset_pCT(data.Dataset):
                 self.raw_labels = np.load(dataset_path, allow_pickle=True)['ct_lesion_GT'].astype(np.uint8)
             except:
                 self.raw_labels = np.load(dataset_path, allow_pickle=True)['lesion_GT'].astype(np.uint8)
+            self.raw_labels = np.expand_dims(self.raw_labels, axis=-1)
             assert len(self.raw_images) == len(self.raw_labels)
             print('Loading is done\n')
 
@@ -53,6 +54,7 @@ class GenevaStrokeDataset_pCT(data.Dataset):
                 target = np.load(self.dataset_path, allow_pickle=True)['ct_lesion_GT'][index].astype(np.uint8)
             except:
                 target = np.load(self.dataset_path, allow_pickle=True)['lesion_GT'][index].astype(np.uint8)
+            target = np.expand_dims(target, axis=-1)
             # todo check how to apply mask
             mask = np.load(self.dataset_path, allow_pickle=True)['brain_masks'][index]
         else:

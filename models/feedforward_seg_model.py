@@ -50,7 +50,6 @@ class FeedForwardSegmentation(BaseModel):
             self.optimizers.append(self.optimizer_S)
 
             # print the network details
-            # print the network details
             if kwargs.get('verbose', True):
                 print('Network is initialized')
                 print_network(self.net)
@@ -73,7 +72,7 @@ class FeedForwardSegmentation(BaseModel):
                 self.input = _input.cuda() if self.use_cuda else _input
             elif idx == 1:
                 self.target = Variable(_input.cuda()) if self.use_cuda else Variable(_input)
-                assert self.input.size() == self.target.size()
+                # assert self.input.size() == self.target.size()
 
     def forward(self, split):
         if split == 'train':
@@ -125,7 +124,7 @@ class FeedForwardSegmentation(BaseModel):
         return OrderedDict(seg_stats)
 
     def get_current_errors(self):
-        return OrderedDict([('Seg_Loss', self.loss_S.data[0])
+        return OrderedDict([('Seg_Loss', self.loss_S.data.item())
                             ])
 
     def get_current_visuals(self):

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from torch.autograd import Variable
 
 def cross_entropy_2D(input, target, weight=None, size_average=True):
     n, c, h, w = input.size()
@@ -90,7 +90,6 @@ class One_Hot(nn.Module):
 
 
 if __name__ == '__main__':
-    from torch.autograd import Variable
     depth=3
     batch_size=2
     encoder = One_Hot(depth=depth).forward

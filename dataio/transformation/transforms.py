@@ -1,4 +1,5 @@
 import torchsample.transforms as ts
+import torchvision.transforms as tf
 from pprint import pprint
 
 
@@ -51,31 +52,57 @@ class Transformations:
         :return:
         '''
 
-        train_transform = ts.Compose([ts.PadNumpy(size=self.scale_size),
-                                      ts.ToTensor(),
-                                      ts.ChannelsFirst(),
-                                      ts.TypeCast(['float', 'float']),
-                                      ts.RandomFlip(h=True, v=True, p=self.random_flip_prob),
-                                      ts.RandomAffine(rotation_range=self.rotate_val, translation_range=self.shift_val,
-                                                      zoom_range=self.scale_val, interp=('bilinear', 'nearest')),
-                                      #ts.NormalizeMedicPercentile(norm_flag=(True, False)),
-                                      ts.NormalizeMedic(norm_flag=(True, False)),
-                                      ts.ChannelsLast(),
-                                      ts.AddChannel(axis=0),
-                                      ts.RandomCrop(size=self.patch_size),
-                                      ts.TypeCast(['float', 'long'])
-                                ])
+        # train_transform = ts.Compose([ts.PadNumpy(size=self.scale_size),
+        #                               ts.ToTensor(),
+        #                               ts.ChannelsFirst(),
+        #                               ts.TypeCast(['float', 'float']),
+        #                               ts.RandomFlip(h=True, v=True, p=self.random_flip_prob),
+        #                               ts.RandomAffine(rotation_range=self.rotate_val, translation_range=self.shift_val,
+        #                                               zoom_range=self.scale_val, interp=('bilinear', 'nearest')),
+        #                               #ts.NormalizeMedicPercentile(norm_flag=(True, False)),
+        #                               ts.NormalizeMedic(norm_flag=(True, False)),
+        #                               ts.ChannelsLast(),
+        #                               ts.AddChannel(axis=0),
+        #                               ts.RandomCrop(size=self.patch_size),
+        #                               ts.TypeCast(['float', 'long'])
+        #                         ])
+        #
+        # valid_transform = ts.Compose([ts.PadNumpy(size=self.scale_size),
+        #                               ts.ToTensor(),
+        #                               ts.ChannelsFirst(),
+        #                               ts.TypeCast(['float', 'float']),
+        #                               #ts.NormalizeMedicPercentile(norm_flag=(True, False)),
+        #                               ts.NormalizeMedic(norm_flag=(True, False)),
+        #                               ts.ChannelsLast(),
+        #                               ts.AddChannel(axis=0),
+        #                               ts.SpecialCrop(size=self.patch_size, crop_type=0),
+        #                               ts.TypeCast(['float', 'long'])
+        #                         ])
 
-        valid_transform = ts.Compose([ts.PadNumpy(size=self.scale_size),
-                                      ts.ToTensor(),
+        train_transform = ts.Compose([
+            ts.ToTensor(),
+            ts.Pad(size=self.scale_size),
                                       ts.ChannelsFirst(),
-                                      ts.TypeCast(['float', 'float']),
-                                      #ts.NormalizeMedicPercentile(norm_flag=(True, False)),
-                                      ts.NormalizeMedic(norm_flag=(True, False)),
-                                      ts.ChannelsLast(),
-                                      ts.AddChannel(axis=0),
-                                      ts.SpecialCrop(size=self.patch_size, crop_type=0),
                                       ts.TypeCast(['float', 'long'])
-                                ])
+        ])
+        valid_transform = ts.Compose([
+                                      ts.ToTensor(),
+            ts.Pad(size=self.scale_size),
+            ts.ChannelsFirst(),
+                                      ts.TypeCast(['float', 'long'])
+
+        ])
+
+        # train_transform = tf.Compose([
+        #     tf.Pad(1),
+        #     tf.Lambda(lambda a: a.permute(3, 0, 1, 2)),
+        #     tf.Lambda(lambda a: a.float()),
+        # ])
+        # valid_transform = tf.Compose([
+        #     tf.Pad(1),
+        #     tf.Lambda(lambda a: a.permute(3, 0, 1, 2)),
+        #     tf.Lambda(lambda a: a.float()),
+        #
+        # ])
 
         return {'train': train_transform, 'valid': valid_transform}

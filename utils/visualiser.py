@@ -149,7 +149,7 @@ class Visualiser():
                     win=self.error_wins[key]
             ))
         else:
-            self.vis.updateTrace(X=np.array([x]), Y=np.array([y]), win=self.error_plots[key], name=split_name)
+            self.vis.line(X=np.array([x]), Y=np.array([y]), win=self.error_plots[key], name=split_name, update='append')
     # errors: dictionary of error labels and values
     def plot_current_errors(self, epoch, errors, split_name, counter_ratio=0.0, **kwargs):
         if self.display_id > 0:
