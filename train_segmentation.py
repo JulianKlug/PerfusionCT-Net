@@ -1,13 +1,13 @@
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .dataio.loaders import get_dataset, get_dataset_path
-from .dataio.transformation import get_dataset_transformation
-from .utils.utils import json_file_to_pyobj
-from .utils.visualiser import Visualiser
-from .utils.error_logger import ErrorLogger
+from dataio.loaders import get_dataset, get_dataset_path
+from dataio.transformation import get_dataset_transformation
+from utils.utils import json_file_to_pyobj
+from utils.visualiser import Visualiser
+from utils.error_logger import ErrorLogger
 
-from .models import get_model
+from models import get_model
 
 def train(arguments):
 
