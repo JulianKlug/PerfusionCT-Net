@@ -12,4 +12,5 @@ scikit-image>=0.16.2
 h5py>=2.10.0
 pandas>=1.0.3
 dominate>=2.5.1
-torchsample==0.1.3
+git+git://github.com/ozan-oktay/torchsample#egg=torchsample-0.1.3
+
