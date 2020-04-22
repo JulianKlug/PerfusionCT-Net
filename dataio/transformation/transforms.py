@@ -83,13 +83,15 @@ class Transformations:
             ts.ToTensor(),
             ts.Pad(size=self.scale_size),
                                       ts.ChannelsFirst(),
+            # ts.AddChannel(axis=0),
                                       ts.TypeCast(['float', 'long'])
         ])
         valid_transform = ts.Compose([
                                       ts.ToTensor(),
             ts.Pad(size=self.scale_size),
             ts.ChannelsFirst(),
-                                      ts.TypeCast(['float', 'long'])
+            # ts.AddChannel(axis=0),
+            ts.TypeCast(['float', 'long'])
 
         ])
 
