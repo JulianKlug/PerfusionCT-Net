@@ -35,9 +35,17 @@ def train(arguments):
         exit()
 
     # Setup Data Loader
-    train_dataset = ds_class(ds_path, split='train',      transform=ds_transform['train'], preload_data=train_opts.preloadData)
-    valid_dataset = ds_class(ds_path, split='validation', transform=ds_transform['valid'], preload_data=train_opts.preloadData)
-    test_dataset  = ds_class(ds_path, split='test',       transform=ds_transform['valid'], preload_data=train_opts.preloadData)
+    split_opts = json_opts.data_split
+    print(split_opts, train_opts)
+    train_dataset = ds_class(ds_path, split='train',      transform=ds_transform['train'], preload_data=train_opts.preloadData,
+                             train_size=split_opts.train_size, test_size=split_opts.test_size,
+                             valid_size=split_opts.validation_size, split_seed=split_opts.seed)
+    valid_dataset = ds_class(ds_path, split='validation', transform=ds_transform['valid'], preload_data=train_opts.preloadData,
+                             train_size=split_opts.train_size, test_size=split_opts.test_size,
+                             valid_size=split_opts.validation_size, split_seed=split_opts.seed)
+    test_dataset  = ds_class(ds_path, split='test',       transform=ds_transform['valid'], preload_data=train_opts.preloadData,
+                             train_size=split_opts.train_size, test_size=split_opts.test_size,
+                             valid_size=split_opts.validation_size, split_seed=split_opts.seed)
     train_loader = DataLoader(dataset=train_dataset, num_workers=16, batch_size=train_opts.batchSize, shuffle=True)
     valid_loader = DataLoader(dataset=valid_dataset, num_workers=16, batch_size=train_opts.batchSize, shuffle=False)
     test_loader  = DataLoader(dataset=test_dataset,  num_workers=16, batch_size=train_opts.batchSize, shuffle=False)
