@@ -113,6 +113,8 @@ class GenevaStrokeDataset_pCT(data.Dataset):
 
         # handle exceptions
         validate_images(input, target)
+
+        # apply transformations
         if self.transform:
             input, target = self.transform(input, target)
 
