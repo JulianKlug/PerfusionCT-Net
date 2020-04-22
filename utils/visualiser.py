@@ -40,7 +40,7 @@ class Visualiser():
         self.saved = False
 
     # |visuals|: dictionary of images to display or save
-    def display_current_results(self, visuals, epoch, save_result):
+    def display_current_results(self, visuals, epoch, save_result, ids):
         if self.display_id > 0:  # show images in the browser
             ncols = self.display_single_pane_ncols
             if ncols > 0:
@@ -78,7 +78,7 @@ class Visualiser():
             else:
                 idx = 1
                 for label, image_numpy in visuals.items():
-                    self.vis.image(image_numpy.transpose([2, 0, 1]), opts=dict(title=label),
+                    self.vis.image(image_numpy.transpose([2, 0, 1]), opts=dict(title=ids + '_' + label),
                                    win=self.display_id + idx)
                     idx += 1
 

@@ -1,6 +1,7 @@
 import torch.utils.data as data
 import numpy as np
 import datetime
+import torch
 from .utils import validate_images
 
 
@@ -14,6 +15,7 @@ class GenevaStrokeDataset_pCT(data.Dataset):
         :param preload_data: boolean, preload data into RAM
         '''
         super(GenevaStrokeDataset_pCT, self).__init__()
+        # TODO make dataset split
 
         self.dataset_path = dataset_path
         self.params = np.load(dataset_path, allow_pickle=True)['params']
@@ -31,17 +33,19 @@ class GenevaStrokeDataset_pCT(data.Dataset):
         self.preload_data = preload_data
         if self.preload_data:
             print('Preloading the {0} dataset ...'.format(split))
-            self.raw_images = np.load(dataset_path, allow_pickle=True)['ct_inputs'].astype(np.int16)
+            self.raw_images = np.load(dataset_path, allow_pickle=True)['ct_inputs'][..., 0].astype(np.int16)
             # todo check how to apply mask
             self.raw_masks = np.load(dataset_path, allow_pickle=True)['brain_masks']
             try:
                 self.raw_labels = np.load(dataset_path, allow_pickle=True)['ct_lesion_GT'].astype(np.uint8)
             except:
                 self.raw_labels = np.load(dataset_path, allow_pickle=True)['lesion_GT'].astype(np.uint8)
-            self.raw_labels = np.expand_dims(self.raw_labels, axis=-1)
+            # self.raw_labels = np.expand_dims(self.raw_labels, axis=-1)
             assert len(self.raw_images) == len(self.raw_labels)
             print('Loading is done\n')
 
+    def get_ids(self, indices):
+        return [self.ids[index] for index in indices]
 
     def __getitem__(self, index):
         # update the seed to avoid workers sample the same augmentation parameters
@@ -49,12 +53,12 @@ class GenevaStrokeDataset_pCT(data.Dataset):
 
         # load the images
         if not self.preload_data:
-            input = np.load(self.dataset_path, allow_pickle=True)['ct_inputs'][index].astype(np.int16)
+            input = np.load(self.dataset_path, allow_pickle=True)['ct_inputs'][index, ..., 0].astype(np.int16)
             try:
                 target = np.load(self.dataset_path, allow_pickle=True)['ct_lesion_GT'][index].astype(np.uint8)
             except:
                 target = np.load(self.dataset_path, allow_pickle=True)['lesion_GT'][index].astype(np.uint8)
-            target = np.expand_dims(target, axis=-1)
+            # target = np.expand_dims(target, axis=-1)
             # todo check how to apply mask
             mask = np.load(self.dataset_path, allow_pickle=True)['brain_masks'][index]
         else:
@@ -66,7 +70,7 @@ class GenevaStrokeDataset_pCT(data.Dataset):
         if self.transform:
             input, target = self.transform(input, target)
 
-        return input, target
+        return input, target, index
 
     def __len__(self):
         return len(self.ids)

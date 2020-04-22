@@ -52,7 +52,7 @@ def train(arguments):
         print('(epoch: %d, total # iters: %d)' % (epoch, len(train_loader)))
 
         # Training Iterations
-        for epoch_iter, (images, labels) in tqdm(enumerate(train_loader, 1), total=len(train_loader)):
+        for epoch_iter, (images, labels, indices) in tqdm(enumerate(train_loader, 1), total=len(train_loader)):
             # Make a training update
             model.set_input(images, labels)
             model.optimize_parameters()
@@ -63,8 +63,9 @@ def train(arguments):
             error_logger.update(errors, split='train')
 
         # Validation and Testing Iterations
-        for loader, split in zip([valid_loader, test_loader], ['validation', 'test']):
-            for epoch_iter, (images, labels) in tqdm(enumerate(loader, 1), total=len(loader)):
+        for loader, split, dataset in zip([valid_loader, test_loader], ['validation', 'test'], [valid_dataset, test_dataset]):
+            for epoch_iter, (images, labels, indices) in tqdm(enumerate(loader, 1), total=len(loader)):
+                ids = dataset.get_ids(indices)
 
                 # Make a forward pass with the model
                 model.set_input(images, labels)
@@ -77,7 +78,8 @@ def train(arguments):
 
                 # Visualise predictions
                 visuals = model.get_current_visuals()
-                visualizer.display_current_results(visuals, epoch=epoch, save_result=False)
+                displayed_ids = ids[0] # as only first image is selecte by get currecnt visuals
+                visualizer.display_current_results(visuals, epoch=epoch, save_result=False, ids=displayed_ids)
 
         # Update the plots
         for split in ['train', 'validation', 'test']:
