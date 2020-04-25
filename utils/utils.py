@@ -8,6 +8,7 @@ import collections
 import json
 import csv
 from skimage.exposure import rescale_intensity
+import matplotlib.pyplot as plt
 
 # Converts a Tensor into a Numpy array
 # |imtype|: the desired type of the converted numpy array
@@ -25,6 +26,19 @@ def tensor2im(image_tensor, imgtype='img', datatype=np.uint8, batch_index=0):
         return image_numpy.astype(datatype)
     return rescale_intensity(image_numpy.astype(datatype))
 
+def volume2img(volume):
+    # Volume: np array
+    # Todo add possibility to switch between mid_slice=True, labeled_slices=False
+    def normalize(x):
+        # clipped_x = np.clip(x, np.percentile(x, 1), np.percentile(x, 99)) # can be done fro signal enhancement
+        clipped_x = x
+        return np.subtract(clipped_x, np.min(clipped_x))/np.subtract(np.max(clipped_x), np.min(clipped_x))
+    n_i, n_c, n_x, n_y, n_z = volume.shape
+    center_z = n_z // 2
+    for c in range(n_c):
+        volume[:, c] = normalize(volume[:, c])
+
+    return volume[:, :, :, :, center_z]
 
 def diagnose_network(net, name='network'):
     mean = 0.0
@@ -37,6 +51,28 @@ def diagnose_network(net, name='network'):
         mean = mean / count
     print(name)
     print(mean)
+
+def save_volumes(volumes, ids, save_dir, visualisation_format='png'):
+    n_c = volumes['input'].shape[1]
+    for i in range(len(ids)):
+        plt.figure()
+        for c in range(n_c):
+            plt.subplot(n_c, 3, c*3 + 1)
+            plt.imshow(volumes['input'][i, c], cmap='gray')
+            plt.title(f'channel {str(c)}')
+            plt.axis('off')
+        plt.subplot(n_c, 3, 2)
+        plt.imshow(volumes['output'][i, 0])
+        plt.title('output')
+        plt.axis('off')
+        plt.subplot(n_c, 3, 3)
+        plt.imshow(volumes['target'][i, 0], cmap='gray')
+        plt.imshow(volumes['output'][i, 0], cmap='Blues', alpha=0.6)
+        plt.axis('off')
+        plt.title('output + target')
+        plt.suptitle(f'{ids[i]}')
+        plt.savefig(save_dir + '/{}.{}'.format(ids[i], visualisation_format), format=visualisation_format)
+        plt.close()
 
 
 def save_image(image_numpy, image_path):

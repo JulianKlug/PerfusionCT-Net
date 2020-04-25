@@ -64,10 +64,13 @@ def train(arguments):
     model.set_scheduler(train_opts)
     for epoch in range(model.which_epoch, train_opts.n_epochs):
         print('(epoch: %d, total # iters: %d)' % (epoch, len(train_loader)))
+        train_volumes = []
+        validation_volumes = []
 
         # Training Iterations
         for epoch_iter, (images, labels, indices) in tqdm(enumerate(train_loader, 1), total=len(train_loader)):
             # Make a training update
+            # todo check wtf 2 output channels
             model.set_input(images, labels)
             model.optimize_parameters()
             #model.optimize_parameters_accumulate_grd(epoch_iter)
@@ -75,6 +78,11 @@ def train(arguments):
             # Error visualisation
             errors = model.get_current_errors()
             error_logger.update(errors, split='train')
+
+            ids = train_dataset.get_ids(indices)
+            volumes = model.get_current_volumes()
+            visualizer.display_current_volumes(volumes, ids, 'train', epoch)
+            train_volumes.append(volumes)
 
         # Validation and Testing Iterations
         for loader, split, dataset in zip([valid_loader, test_loader], ['validation', 'test'], [valid_dataset, test_dataset]):
@@ -91,9 +99,10 @@ def train(arguments):
                 error_logger.update({**errors, **stats}, split=split)
 
                 # Visualise predictions
-                visuals = model.get_current_visuals()
-                displayed_ids = ids[0] # as only first image is selecte by get currecnt visuals
-                visualizer.display_current_results(visuals, epoch=epoch, save_result=False, ids=displayed_ids)
+                if split == 'validation':  # do not look at testing
+                    volumes = model.get_current_volumes()
+                    visualizer.display_current_volumes(volumes, ids, split, epoch)
+                    validation_volumes.append(volumes)
 
         # Update the plots
         for split in ['train', 'validation', 'test']:

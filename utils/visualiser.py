@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from collections import OrderedDict
 import os
 import ntpath
 import time
@@ -13,6 +14,9 @@ class Visualiser():
         self.display_id = opt.display_id
         self.use_html = not opt.no_html
         self.win_size = opt.display_winsize
+        self.save_epoch_freq = opt.save_epoch_freq
+        # if save epoch frequency option is negative, volumes will not be saved
+        self.save_to_disk = True if opt.save_epoch_freq >= 0 else False
         self.save_dir = save_dir
         self.name = os.path.basename(self.save_dir)
         self.saved = False
@@ -26,6 +30,10 @@ class Visualiser():
             import visdom
             self.vis = visdom.Visdom(port=opt.display_port)
 
+        if self.save_volumes:
+            self.saved_volumes_dir = os.path.join(self.save_dir, 'saved_volumes')
+            utils.mkdir(self.saved_volumes_dir)
+
         if self.use_html:
             self.web_dir = os.path.join(self.save_dir, 'web')
             self.img_dir = os.path.join(self.web_dir, 'images')
@@ -38,6 +46,23 @@ class Visualiser():
 
     def reset(self):
         self.saved = False
+
+    def display_current_volumes(self, volumes, ids, split, epoch):
+        if not self.display_id > 0 or not self.save_to_disk:  # iamges not needed
+            return
+        volumes = OrderedDict([('output', utils.volume2img(volumes['output'])),
+                              ('input', utils.volume2img(volumes['input'])),
+                              ('target', utils.volume2img(volumes['target']))])
+        if self.save_to_disk and epoch % self.save_epoch_freq == 0:
+            self.save_volumes(volumes, ids, split, epoch)
+        if not self.display_id > 0:  # don't show images in the browser
+            return
+        for i in range(len(ids)):
+            volume_stack = np.concatenate((volumes['input'][i], volumes['output'][i, 0:1], volumes['target'][i]), axis=0)
+            volume_stack = np.expand_dims(volume_stack, axis=1)
+            volume_stack = np.transpose(volume_stack, (0, 1, 3, 2))
+            self.vis.images(volume_stack, opts=dict(title=f'Prediction: {split} {epoch} {ids[i]}'),
+                            win=self.display_id + i)
 
     # |visuals|: dictionary of images to display or save
     def display_current_results(self, visuals, epoch, save_result, ids):
@@ -175,6 +200,12 @@ class Visualiser():
         print(message)
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)
+
+    def save_volumes(self, volumes, ids, split, epoch):
+        epoch_dir = os.path.join(self.saved_volumes_dir, f'epoch_{str(epoch)}')
+        split_dir = os.path.join(epoch_dir, split)
+        utils.mkdirs([epoch_dir, split_dir])
+        utils.save_volumes(volumes, ids, split_dir)
 
     # save image to the disk
     def save_images(self, webpage, visuals, image_path):

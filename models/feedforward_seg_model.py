@@ -77,6 +77,7 @@ class FeedForwardSegmentation(BaseModel):
     def forward(self, split):
         if split == 'train':
             self.prediction = self.net(Variable(self.input))
+            self.pred_seg = None
         elif split == 'test':
             # Todo update this with torch no grad
             self.prediction = self.net(Variable(self.input, volatile=True))
@@ -133,6 +134,13 @@ class FeedForwardSegmentation(BaseModel):
         target_img = util.tensor2im(self.target, 'lbl')
         seg_img = util.tensor2im(self.pred_seg, 'lbl')
         return OrderedDict([('out_S', seg_img), ('inp_S', inp_img), ('target_S', target_img)])
+
+    def get_current_volumes(self):
+        def to_volume(a): return a.cpu().float().detach().numpy()
+        output = self.prediction if self.pred_seg is None else self.pred_seg
+        return OrderedDict([('output', to_volume(output)),
+                            ('input', to_volume(self.input)),
+                            ('target', to_volume(self.target))])
 
     def get_feature_maps(self, layer_name, upscale):
         feature_extractor = HookBasedFeatureExtractor(self.net, layer_name, upscale)
