@@ -78,6 +78,7 @@ class FeedForwardSegmentation(BaseModel):
         if split == 'train':
             self.prediction = self.net(Variable(self.input))
         elif split == 'test':
+            # Todo update this with torch no grad
             self.prediction = self.net(Variable(self.input, volatile=True))
             # Apply a softmax and return a segmentation map
             self.logits = self.net.apply_argmax_softmax(self.prediction)
