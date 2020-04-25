@@ -47,7 +47,7 @@
     "tensor_dim": "3D",
     "division_factor": 16,
     "input_nc": 2,
-    "output_nc": 2,
+    "output_nc": 1,
     "lr_rate": 1e-4,
     "l2_reg_weight": 1e-6,
     "feature_scale": 4,
@@ -55,7 +55,7 @@
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
     "experiment_name": "small_test_unet_pct_multi_att_dsv",
-    "criterion": "dice_loss"
+    "criterion": "focal_tversky_loss"
   }
 }
 

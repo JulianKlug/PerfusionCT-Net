@@ -1,8 +1,10 @@
-# Originally written by wkentaro
+# Originally written by wkentaro, additions by monsieurwave
 # https://github.com/wkentaro/pytorch-fcn/blob/master/torchfcn/utils.py
 
 import numpy as np
 import cv2
+from sklearn.metrics import roc_curve, auc
+
 
 def _fast_hist(label_true, label_pred, n_class):
     mask = (label_true >= 0) & (label_true < n_class)
@@ -77,6 +79,25 @@ def dice_score(label_gt, label_pred, n_class):
         dice_scores[class_id] = score
 
     return dice_scores
+
+
+def roc_auc(label_gt, label_pred):
+    y_true = np.array(label_gt).flatten()
+    y_scores = np.array(label_pred).flatten()
+
+    fpr, tpr, roc_thresholds = roc_curve(y_true, y_scores)
+    roc_auc_score = auc(fpr, tpr)
+    return roc_auc_score
+
+
+def single_class_dice_score(target, input):
+    smooth = 1e-7
+    iflat = np.array(input).flatten()
+    tflat = np.array(target).flatten()
+    intersection = (iflat * tflat).sum()
+
+    return ((2. * intersection + smooth) /
+            (iflat.sum() + tflat.sum() + smooth))
 
 
 def precision_and_recall(label_gt, label_pred, n_class):

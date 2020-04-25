@@ -70,7 +70,6 @@ def train(arguments):
         # Training Iterations
         for epoch_iter, (images, labels, indices) in tqdm(enumerate(train_loader, 1), total=len(train_loader)):
             # Make a training update
-            # todo check wtf 2 output channels
             model.set_input(images, labels)
             model.optimize_parameters()
             #model.optimize_parameters_accumulate_grd(epoch_iter)

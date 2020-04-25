@@ -6,7 +6,7 @@ import os
 import numpy as np
 import torch.optim as optim
 from torch.nn import CrossEntropyLoss
-from utils.metrics import segmentation_scores, dice_score_list
+from utils.metrics import segmentation_scores, dice_score_list, single_class_dice_score, roc_auc
 from sklearn import metrics
 from .layers.loss import *
 
@@ -35,9 +35,14 @@ def get_criterion(opts):
         elif 'classifier' in opts.type:
             criterion = CrossEntropyLoss()
     elif opts.criterion == 'dice_loss':
-        criterion = SoftDiceLoss(opts.output_nc)
-    elif opts.criterion == 'dice_loss_pancreas_only':
+        if opts.output_nc == 1:
+            criterion = SingleClassSoftDiceLoss()
+        else:
+            criterion = MultiClassSoftDiceLoss(opts.output_nc)
+    elif opts.criterion == 'dice_loss_specific_classes_only':
         criterion = CustomSoftDiceLoss(opts.output_nc, class_ids=[0, 2])
+    elif opts.criterion == 'focal_tversky_loss':
+        criterion = FocalTverskyLoss()
 
     return criterion
 
@@ -83,9 +88,11 @@ def segmentation_stats(pred_seg, target):
         preds.append(pred_)
 
     iou = segmentation_scores(gts, preds, n_class=n_classes)
-    dice = dice_score_list(gts, preds, n_class=n_classes)
+    class_wise_dice = dice_score_list(gts, preds, n_class=n_classes)
+    single_class_dice = single_class_dice_score(gts, preds)
+    roc_auc_score = roc_auc(gts, preds)
 
-    return iou, dice
+    return iou, class_wise_dice, single_class_dice, roc_auc_score
 
 
 def classification_scores(gts, preds, labels):
