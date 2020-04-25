@@ -25,6 +25,19 @@ def tensor2im(image_tensor, imgtype='img', datatype=np.uint8, batch_index=0):
         return image_numpy.astype(datatype)
     return rescale_intensity(image_numpy.astype(datatype))
 
+def volume2img(volume):
+    # Volume: np array
+    # Todo add possibility to switch between mid_slice=True, labeled_slices=False
+    def normalize(x):
+        # clipped_x = np.clip(x, np.percentile(x, 1), np.percentile(x, 99)) # can be done fro signal enhancement
+        clipped_x = x
+        return np.subtract(clipped_x, np.min(clipped_x))/np.subtract(np.max(clipped_x), np.min(clipped_x))
+    n_i, n_c, n_x, n_y, n_z = volume.shape
+    center_z = n_z // 2
+    for c in range(n_c):
+        volume[:, c] = normalize(volume[:, c])
+
+    return volume[:, :, :, :, center_z]
 
 def diagnose_network(net, name='network'):
     mean = 0.0

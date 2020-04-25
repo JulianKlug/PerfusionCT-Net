@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from collections import OrderedDict
 import os
 import ntpath
 import time
@@ -38,6 +39,19 @@ class Visualiser():
 
     def reset(self):
         self.saved = False
+
+    def display_current_volumes(self, volumes, ids, split):
+        if not self.display_id > 0:  # don't show images in the browser
+            return
+        volumes = OrderedDict([('output', utils.volume2img(volumes['output'])),
+                              ('input', utils.volume2img(volumes['input'])),
+                              ('target', utils.volume2img(volumes['target']))])
+        for i in range(len(ids)):
+            volume_stack = np.concatenate((volumes['input'][i], volumes['output'][i, 0:1], volumes['target'][i]), axis=0)
+            volume_stack = np.expand_dims(volume_stack, axis=1)
+            volume_stack = np.transpose(volume_stack, (0, 1, 3, 2))
+            self.vis.images(volume_stack, opts=dict(title=f'Prediction: {split} {ids[i]}'),
+                            win=self.display_id + i)
 
     # |visuals|: dictionary of images to display or save
     def display_current_results(self, visuals, epoch, save_result, ids):
