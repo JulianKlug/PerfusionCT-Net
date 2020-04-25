@@ -8,6 +8,7 @@ import collections
 import json
 import csv
 from skimage.exposure import rescale_intensity
+import matplotlib.pyplot as plt
 
 # Converts a Tensor into a Numpy array
 # |imtype|: the desired type of the converted numpy array
@@ -50,6 +51,28 @@ def diagnose_network(net, name='network'):
         mean = mean / count
     print(name)
     print(mean)
+
+def save_volumes(volumes, ids, save_dir, visualisation_format='png'):
+    n_c = volumes['input'].shape[1]
+    for i in range(len(ids)):
+        plt.figure()
+        for c in range(n_c):
+            plt.subplot(n_c, 3, c*3 + 1)
+            plt.imshow(volumes['input'][i, c], cmap='gray')
+            plt.title(f'channel {str(c)}')
+            plt.axis('off')
+        plt.subplot(n_c, 3, 2)
+        plt.imshow(volumes['output'][i, 0])
+        plt.title('output')
+        plt.axis('off')
+        plt.subplot(n_c, 3, 3)
+        plt.imshow(volumes['target'][i, 0], cmap='gray')
+        plt.imshow(volumes['output'][i, 0], cmap='Blues', alpha=0.6)
+        plt.axis('off')
+        plt.title('output + target')
+        plt.suptitle(f'{ids[i]}')
+        plt.savefig(save_dir + '/{}.{}'.format(ids[i], visualisation_format), format=visualisation_format)
+        plt.close()
 
 
 def save_image(image_numpy, image_path):

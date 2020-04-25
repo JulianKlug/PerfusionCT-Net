@@ -64,6 +64,8 @@ def train(arguments):
     model.set_scheduler(train_opts)
     for epoch in range(model.which_epoch, train_opts.n_epochs):
         print('(epoch: %d, total # iters: %d)' % (epoch, len(train_loader)))
+        train_volumes = []
+        validation_volumes = []
 
         # Training Iterations
         for epoch_iter, (images, labels, indices) in tqdm(enumerate(train_loader, 1), total=len(train_loader)):
@@ -79,7 +81,8 @@ def train(arguments):
 
             ids = train_dataset.get_ids(indices)
             volumes = model.get_current_volumes()
-            visualizer.display_current_volumes(volumes, ids, 'train')
+            visualizer.display_current_volumes(volumes, ids, 'train', epoch)
+            train_volumes.append(volumes)
 
         # Validation and Testing Iterations
         for loader, split, dataset in zip([valid_loader, test_loader], ['validation', 'test'], [valid_dataset, test_dataset]):
@@ -96,9 +99,10 @@ def train(arguments):
                 error_logger.update({**errors, **stats}, split=split)
 
                 # Visualise predictions
-                if split == 'validation': 
+                if split == 'validation':  # do not look at testing
                     volumes = model.get_current_volumes()
-                    visualizer.display_current_volumes(volumes, ids, split)
+                    visualizer.display_current_volumes(volumes, ids, split, epoch)
+                    validation_volumes.append(volumes)
 
         # Update the plots
         for split in ['train', 'validation', 'test']:

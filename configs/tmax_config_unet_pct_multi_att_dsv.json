@@ -10,7 +10,8 @@
   },
   "visualisation":{
     "display_port": 8097,
-    "no_html": false,
+    "no_html": true,
+    "save_epoch_freq": 10,
     "display_winsize": 256,
     "display_id": 1,
     "display_single_pane_ncols": 0
