@@ -31,7 +31,6 @@ def train(arguments):
     channels = json_opts.data_opts.channels
     if len(channels) != json_opts.model.input_nc \
             or len(channels) != getattr(json_opts.augmentation, arch_type).scale_size[-1]:
-            # or len(channels) != getattr(json_opts.augmentation, arch_type).patch_size[-1]:
         raise Exception('Number of data channels must match number of model channels, and patch and scale size dimensions')
 
     # Setup the NN Model

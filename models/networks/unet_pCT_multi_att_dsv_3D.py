@@ -104,8 +104,11 @@ class unet_pCT_multi_att_dsv_3D(nn.Module):
 
 
     @staticmethod
-    def apply_argmax_softmax(pred):
-        log_p = F.softmax(pred, dim=1)
+    def apply_argmax_softmax(pred, dim=1):
+        if dim is None:
+            log_p = F.sigmoid(pred)
+        else:
+            log_p = F.softmax(pred, dim=dim)
 
         return log_p
 

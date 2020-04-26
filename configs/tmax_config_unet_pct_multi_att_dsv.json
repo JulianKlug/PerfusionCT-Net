@@ -1,7 +1,7 @@
 {
   "training":{
     "arch_type": "gsd_pCT",
-    "n_epochs": 1000,
+    "n_epochs": 300,
     "save_epoch_freq": 10,
     "lr_policy": "step",
     "lr_decay_iters": 250,
@@ -54,7 +54,7 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "tmax_unet_pct_multi_att_dsv",
+    "experiment_name": "one_chan_vis_tmax_unet_pct_multi_att_dsv",
     "criterion": "dice_loss"
   }
 }

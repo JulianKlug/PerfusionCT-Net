@@ -61,6 +61,7 @@ class Visualiser():
             volume_stack = np.concatenate((volumes['input'][i], volumes['output'][i, 0:1], volumes['target'][i]), axis=0)
             volume_stack = np.expand_dims(volume_stack, axis=1)
             volume_stack = np.transpose(volume_stack, (0, 1, 3, 2))
+            volume_stack = np.nan_to_num(volume_stack)
             self.vis.images(volume_stack, opts=dict(title=f'Prediction: {split} {epoch} {ids[i]}'),
                             win=self.display_id + i)
 

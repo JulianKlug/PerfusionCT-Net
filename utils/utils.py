@@ -54,19 +54,24 @@ def diagnose_network(net, name='network'):
 
 def save_volumes(volumes, ids, save_dir, visualisation_format='png'):
     n_c = volumes['input'].shape[1]
+    n_cols = 4
     for i in range(len(ids)):
         plt.figure()
         for c in range(n_c):
-            plt.subplot(n_c, 3, c*3 + 1)
+            plt.subplot(n_c, n_cols, c*n_cols + 1)
             plt.imshow(volumes['input'][i, c], cmap='gray')
             plt.title(f'channel {str(c)}')
             plt.axis('off')
-        plt.subplot(n_c, 3, 2)
-        plt.imshow(volumes['output'][i, 0])
+        plt.subplot(n_c, n_cols, 2)
+        plt.imshow(volumes['output'][i, 0], cmap='gray', vmin=0, vmax=1)
         plt.title('output')
         plt.axis('off')
-        plt.subplot(n_c, 3, 3)
-        plt.imshow(volumes['target'][i, 0], cmap='gray')
+        plt.subplot(n_c, n_cols, 3)
+        plt.imshow(volumes['target'][i, 0], cmap='gray', vmin=0, vmax=1)
+        plt.title('ground truth')
+        plt.axis('off')
+        plt.subplot(n_c, n_cols, 4)
+        plt.imshow(volumes['target'][i, 0], cmap='gray', vmin=0, vmax=1)
         plt.imshow(volumes['output'][i, 0], cmap='Blues', alpha=0.6)
         plt.axis('off')
         plt.title('output + target')

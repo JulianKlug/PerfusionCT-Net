@@ -24,26 +24,10 @@ def cross_entropy_3D(input, target, weight=None, size_average=True):
         loss /= float(target.numel())
     return loss
 
-class SingleClassSoftDiceLoss(nn.Module):
 
-    def __init__(self):
-        super(SingleClassSoftDiceLoss, self).__init__()
-        self.smooth = 0.01
-
-    def forward(self, y_pred, y_true):
-        assert y_pred.size() == y_true.size()
-        y_pred = y_pred[:, 0].contiguous().view(-1)
-        y_true = y_true[:, 0].contiguous().view(-1)
-        intersection = (y_pred.float() * y_true.float()).sum()
-        dsc = (2. * intersection + self.smooth) / (
-            y_pred.sum() + y_true.sum() + self.smooth
-        )
-        return 1. - dsc
-
-
-class MultiClassSoftDiceLoss(nn.Module):
+class SoftDiceLoss(nn.Module):
     def __init__(self, n_classes):
-        super(MultiClassSoftDiceLoss, self).__init__()
+        super(SoftDiceLoss, self).__init__()
         self.one_hot_encoder = One_Hot(n_classes).forward
         self.n_classes = n_classes
 
@@ -51,8 +35,12 @@ class MultiClassSoftDiceLoss(nn.Module):
         smooth = 0.01
         batch_size = input.size(0)
 
-        input = F.softmax(input, dim=1).view(batch_size, self.n_classes, -1)
-        target = self.one_hot_encoder(target).contiguous().view(batch_size, self.n_classes, -1)
+        if self.n_classes == 1:
+            input = torch.sigmoid(input).view(batch_size, self.n_classes, -1)
+            target = target.contiguous().view(batch_size, self.n_classes, -1).float()
+        else:
+            input = F.softmax(input, dim=1).view(batch_size, self.n_classes, -1)
+            target = self.one_hot_encoder(target).contiguous().view(batch_size, self.n_classes, -1)
 
         inter = torch.sum(input * target, 2) + smooth
         union = torch.sum(input, 2) + torch.sum(target, 2) + smooth
@@ -106,16 +94,20 @@ def tversky_loss(true, logits, alpha, beta, eps=1e-7):
         [1]: https://arxiv.org/abs/1706.05721
     """
     num_classes = logits.shape[1]
+    batch_size = logits.shape[0]
 
     if len(logits.shape) > 4: # 3D
-        one_hot_encoder = One_Hot(num_classes + 1).forward
+        one_hot_encoder = One_Hot(num_classes).forward
         true_1_hot = one_hot_encoder(true)
         if num_classes == 1:
             pos_prob = torch.sigmoid(logits)
             neg_prob = 1 - pos_prob
             probas = torch.cat([pos_prob, neg_prob], dim=1)
         else:
-            probas = F.softmax(logits, dim=1)
+            # probas = F.softmax(logits, dim=1)
+            probas = F.softmax(logits, dim=1).view(batch_size, num_classes, -1)
+            true_1_hot = one_hot_encoder(true).contiguous().view(batch_size, num_classes, -1)
+        dims = 2
 
     else: # 2D
         if num_classes == 1:
@@ -131,8 +123,9 @@ def tversky_loss(true, logits, alpha, beta, eps=1e-7):
             true_1_hot = torch.eye(num_classes)[true.squeeze(1).long()]
             true_1_hot = true_1_hot.permute(0, 3, 1, 2).float()
             probas = F.softmax(logits, dim=1)
+        dims = (0,) + tuple(range(2, true.ndimension()))
+
     true_1_hot = true_1_hot.type(logits.type())
-    dims = (0,) + tuple(range(2, true.ndimension()))
     intersection = torch.sum(probas * true_1_hot, dims)
     fps = torch.sum(probas * (1 - true_1_hot), dims)
     fns = torch.sum((1 - probas) * true_1_hot, dims)
@@ -156,7 +149,6 @@ class FocalTverskyLoss(nn.Module):
     def forward(self, logits, targets):
         tl = tversky_loss(targets, logits, self.alpha, self.beta, eps=1e-7)
         return torch.pow(tl, self.gamma)
-
 
 
 class One_Hot(nn.Module):
