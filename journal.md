@@ -24,6 +24,25 @@ ie. the unet can now also output a single binary channel
 - Unet is correctly implemented
 - Multi-channel prediction remains superior in terms of convergence  
 
+## Focal Tversky loss
+
+|Start Date|End Date  |
+|----------|----------|
+|2020-04-26|2020-04-26|
+
+Implemented focal Tversky (FT) loss function with multi-channel output.  
+
+|FT-Loss over time|Dice over time with FT as loss  |
+|----------|----------|
+|![FT-Loss](./static/journal/focal_tversky_loss_over_time.svg "FT-Loss over time") | ![FT-Dice](./static/journal/focal_tversky_dice_over_time.svg "Dice over time with FT as loss")|
+
+### Conclusion
+
+- Focal tversky loss performs well
+- Similar overall performance when comparing to dice loss with 2 output channels
+- Maybe more accurate on small segments
+- Maybe more prone to overfitting
+
 
 # TODO
 
