@@ -79,15 +79,15 @@ class FeedForwardSegmentation(BaseModel):
             self.prediction = self.net(Variable(self.input))
             self.pred_seg = None
         elif split == 'test':
-            # Todo update this with torch no grad
-            self.prediction = self.net(Variable(self.input, volatile=True))
-            # Apply a softmax and return a segmentation map
-            if self.prediction.shape[1] > 1: # multiclass
-                self.logits = self.net.apply_argmax_softmax(self.prediction, dim=1)
-                self.pred_seg = self.logits.data.max(1)[1].unsqueeze(1) # give each voxel the class index with max proba
-            else:
-                self.logits = self.net.apply_argmax_softmax(self.prediction, dim=None)
-                self.pred_seg = (self.logits > 0.5).float()
+            with torch.no_grad():
+                self.prediction = self.net(Variable(self.input))
+                # Apply a softmax and return a segmentation map
+                if self.prediction.shape[1] > 1: # multiclass
+                    self.logits = self.net.apply_argmax_softmax(self.prediction, dim=1)
+                    self.pred_seg = self.logits.data.max(1)[1].unsqueeze(1) # give each voxel the class index with max proba
+                else:
+                    self.logits = self.net.apply_argmax_softmax(self.prediction, dim=None)
+                    self.pred_seg = (self.logits > 0.5).float()
 
     def backward(self):
         self.loss_S = self.criterion(self.prediction, self.target)

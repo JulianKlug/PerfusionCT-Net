@@ -54,8 +54,8 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "ftl_tmax_unet_pct_multi_att_dsv",
-    "criterion": "focal_tversky_loss"
+    "experiment_name": "volatile_tmax_unet_pct_multi_att_dsv",
+    "criterion": "dice_loss"
   }
 }
 
