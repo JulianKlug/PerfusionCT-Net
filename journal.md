@@ -46,7 +46,6 @@ Implemented focal Tversky (FT) loss function with multi-channel output.
 
 # TODO
 
-- Change variable to torch no grad
 - Implement augmentation
 - save loss plots
 - implement combined loss
