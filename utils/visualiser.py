@@ -40,6 +40,11 @@ class Visualiser():
             print('create web directory %s...' % self.web_dir)
             utils.mkdirs([self.web_dir, self.img_dir])
         self.log_name = os.path.join(self.save_dir, filename)
+        self.log_table = os.path.join(self.save_dir, filename.split('.')[0] + '.xlsx')
+        if os.path.exists(self.log_table):
+            timestamp = str(time.time()).split('.')[0]
+            self.log_table = os.path.splitext(self.log_table)[0] + '_' + timestamp + '.xlsx'
+
         with open(self.log_name, "a") as log_file:
             now = time.strftime("%c")
             log_file.write('================ Training Loss (%s) ================\n' % now)
@@ -194,13 +199,23 @@ class Visualiser():
     # errors: same format as |errors| of plotCurrentErrors
     def print_current_errors(self, epoch, errors, split_name):
         message = '(epoch: %d, split: %s) ' % (epoch, split_name)
+        error_df = [epoch]
+        error_df_header = ['epoch']
         for k, v in errors.items():
             if np.isscalar(v):
                 message += '%s: %.3f ' % (k, v)
+                error_df.append(v)
+                error_df_header.append(k)
 
         print(message)
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)
+
+        error_df = pd.DataFrame(data=[error_df], columns=error_df_header)
+        if epoch == 0:
+            utils.append_df_to_excel(self.log_table, error_df, sheet_name=split_name, header=True)
+        else:
+            utils.append_df_to_excel(self.log_table, error_df, sheet_name=split_name, header=False)
 
     def save_volumes(self, volumes, ids, split, epoch):
         epoch_dir = os.path.join(self.saved_volumes_dir, f'epoch_{str(epoch)}')
