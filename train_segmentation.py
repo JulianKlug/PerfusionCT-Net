@@ -106,6 +106,7 @@ def train(arguments):
         for split in ['train', 'validation', 'test']:
             visualizer.plot_current_errors(epoch, error_logger.get_errors(split), split_name=split)
             visualizer.print_current_errors(epoch, error_logger.get_errors(split), split_name=split)
+        visualizer.save_plots(epoch, save_frequency=5)
         error_logger.reset()
 
         # Save the model parameters

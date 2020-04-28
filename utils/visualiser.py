@@ -5,6 +5,7 @@ import os
 import ntpath
 import time
 from utils import utils, html
+from utils.plot_logs import plot_logs
 
 # Use the following comment to launch a visdom server
 # python -m visdom.server
@@ -216,6 +217,10 @@ class Visualiser():
             utils.append_df_to_excel(self.log_table, error_df, sheet_name=split_name, header=True)
         else:
             utils.append_df_to_excel(self.log_table, error_df, sheet_name=split_name, header=False)
+
+    def save_plots(self, epoch, save_frequency):
+        if epoch % save_frequency == 0:
+            plot_logs(self.log_table)
 
     def save_volumes(self, volumes, ids, split, epoch):
         epoch_dir = os.path.join(self.saved_volumes_dir, f'epoch_{str(epoch)}')
