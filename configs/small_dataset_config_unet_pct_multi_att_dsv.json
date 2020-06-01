@@ -31,10 +31,13 @@
   "augmentation": {
     "gsd_pCT": {
       "shift": [0.1,0.1],
-      "rotate": 15.0,
-      "scale": [0.7,1.3],
+      "rotate": 7.5,
+      "scale_val": [0.7,1.3],
+      "max_deform": [5, 5, 5],
       "intensity": [1.0,1.0],
       "random_flip_prob": 0.5,
+      "random_affine_prob": 0.5,
+      "random_elastic_prob": 0.5,
       "scale_size": [96,96,96,1],
       "patch_size": [96,96,96]
     }
@@ -54,7 +57,7 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "stats_small_test_unet_pct_multi_att_dsv",
+    "experiment_name": "random_transform_test_unet_pct_multi_att_dsv",
     "criterion": "dice_loss"
   }
 }

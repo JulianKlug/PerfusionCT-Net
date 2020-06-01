@@ -6,6 +6,9 @@ from scipy.ndimage.interpolation import map_coordinates
 import collections
 from PIL import Image
 import numbers
+from typing import Optional, Tuple, Union
+from torch.nn.functional import pad
+from torchio.transforms import RandomAffine, Interpolation, RandomFlip, RandomNoise, RandomElasticDeformation
 
 
 def center_crop(x, center_crop_size):
@@ -46,7 +49,7 @@ def poisson_downsampling(image, peak, random_state=np.random):
     return noisy_img.astype('float32')
 
 
-def elastic_transform(image, alpha=1000, sigma=30, spline_order=1, mode='nearest', random_state=np.random):
+def elastic_transform(image, alpha=100, sigma=30, spline_order=1, mode='nearest', random_state=np.random):
     """Elastic deformation of image as described in [Simard2003]_.
     .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
        Convolutional Neural Networks applied to Visual Document Analysis", in
@@ -427,6 +430,153 @@ class EnhancedCompose(object):
                 raise Exception('unexpected type')
         return img
 
+
+class PadToScale(object):
+    def __init__(self, scale_size, fill=0, padding_mode='constant'):
+        # assert isinstance(fill, (numbers.Number, str, tuple))
+        # assert padding_mode in ['constant', 'edge', 'reflect', 'symmetric']
+
+        self.fill = fill
+        self.padding_mode = padding_mode
+        self.scale_size = scale_size
+
+    @staticmethod
+    def get_padding(volume, scale_size):
+        target_w = scale_size[0]
+        target_h = scale_size[1]
+        target_z = scale_size[2]
+
+        h_padding = (target_w - volume.shape[0]) / 2
+        v_padding = (target_h - volume.shape[1]) / 2
+        z_padding = (target_z - volume.shape[2]) / 2
+
+        l_pad = h_padding if h_padding % 1 == 0 else h_padding + 0.5
+        t_pad = v_padding if v_padding % 1 == 0 else v_padding + 0.5
+        r_pad = h_padding if h_padding % 1 == 0 else h_padding - 0.5
+        b_pad = v_padding if v_padding % 1 == 0 else v_padding - 0.5
+        z0_pad = z_padding if z_padding % 1 == 0 else z_padding + 0.5
+        z1_pad = z_padding if z_padding % 1 == 0 else z_padding - 0.5
+
+        padding = (int(l_pad), int(t_pad), int(r_pad), int(b_pad), int(z0_pad), int(z1_pad))
+
+        return padding
+
+    def __call__(self, img):
+        """
+        Args:
+            img (Torch Tensor): Image to be padded.
+
+        Returns:
+            Tensor: Padded image.
+        """
+        return pad(img, PadToScale.get_padding(img, self.scale_size), self.fill, self.padding_mode)
+
+    def __repr__(self):
+        return self.__class__.__name__ + f'(fill={self.fill}, padding_mode={self.padding_mode}, scale_size={self.scale_size})'
+
+
+class TorchIOTransformer(object):
+    def __init__(self, get_transformer, max_output_channels=10):
+        self.get_transformer = get_transformer
+        self.max_output_channels = max_output_channels
+
+    def __call__(self, *inputs):
+        if isinstance(inputs, collections.Sequence) or isinstance(inputs, np.ndarray):
+            outputs = []
+            for idx, _input in enumerate(inputs):
+                # todo also apply transformer to mask and then reapply mask to input/label
+                # Detect masks (label mask and brain mask)
+                n_unique = list(_input.unique().size())[0]
+                if n_unique <= self.max_output_channels or n_unique <= 2:
+                    transformer = self.get_transformer(mask=True)
+                    input_tf = transformer(_input.unsqueeze(0)).squeeze(0)
+                    input_tf = input_tf.round()
+                    assert _input.unique().size() == input_tf.unique().size()
+                else:
+                    transformer = self.get_transformer()
+                    input_tf = transformer(_input.unsqueeze(0)).squeeze(0)
+
+                outputs.append(input_tf)
+            return outputs if idx >= 1 else outputs[0]
+        else:
+            raise Exception("inputs is not a sequence (list, tuple, etc)")
+
+
+class RandomElasticTransform(TorchIOTransformer):
+    def __init__(
+            self,
+            num_control_points: Union[int, Tuple[int, int, int]] = 7,
+            max_displacement: Union[float, Tuple[float, float, float]] = 7.5,
+            locked_borders: int = 2,
+            image_interpolation: Interpolation = Interpolation.LINEAR,
+            p: float = 1,
+            seed: Optional[int] = None,
+            is_tensor = True,
+            max_output_channels = 10
+            ):
+        def get_torchio_transformer(mask=False):
+            if mask:
+                interpolation = Interpolation.LINEAR
+            else:
+                interpolation = image_interpolation
+            return RandomElasticDeformation(num_control_points, max_displacement, locked_borders, interpolation, p, seed, is_tensor=is_tensor)
+        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels)
+
+
+class RandomAffineTransform(TorchIOTransformer):
+    def __init__(
+            self,
+            scales: Tuple[float, float] = (0.9, 1.1),
+            degrees = 10,
+            isotropic: bool = False,
+            default_pad_value: Union[str, float] = 'otsu',
+            image_interpolation: Interpolation = Interpolation.LINEAR,
+            p: float = 1,
+            seed: Optional[int] = None,
+            is_tensor=True,
+            max_output_channels=10
+    ):
+        def get_torchio_transformer(mask=False):
+            if mask:
+                interpolation = Interpolation.LINEAR
+            else:
+                interpolation = image_interpolation
+            return RandomAffine(scales, degrees, isotropic, default_pad_value, interpolation, p, seed, is_tensor)
+        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels)
+
+
+class RandomFlipTransform(TorchIOTransformer):
+    def __init__(
+            self,
+            axes: Union[int, Tuple[int, ...]] = 0,
+            flip_probability: float = 0.5,
+            p: float = 1,
+            seed: Optional[int] = None,
+            is_tensor=True,
+            max_output_channels=10
+    ):
+        def get_torchio_transformer(mask=False):
+            return RandomFlip(axes, flip_probability, p, seed, is_tensor)
+        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels)
+
+
+class RandomNoiseTransform(TorchIOTransformer):
+    def __init__(
+            self,
+            std: Tuple[float, float] = (0, 0.25),
+            p: float = 1,
+            seed: Optional[int] = None,
+            is_tensor=True,
+            max_output_channels=10
+    ):
+        def get_torchio_transformer(mask=False):
+            if mask:
+                # Don't apply noise on mask
+                proba = 0
+            else:
+                proba = p
+            return RandomNoise(std, proba, seed, is_tensor)
+        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels)
 
 if __name__ == '__main__':
     from torchvision.transforms import Lambda
