@@ -3,7 +3,7 @@ A UNet for the analysis of perfusion CT imaging in the setting of acute ischemic
 
 
 ## Installation
-`pip install -e .`
+`pip install -r requirements.txt`
 
 ##### Compatibility
 
