@@ -9,6 +9,11 @@ A UNet for the analysis of perfusion CT imaging in the setting of acute ischemic
 
 - Environment must use python 3.7 (for torch and CUDA compatibility)
 
+## Getting started
+
+- The main file for training can be found under `train_segmentation.py`. It takes a config file as argument, examples can be found in the `./config`folder. 
+- A visdom server can launched as well for visualisation: `python -m visdom.server`
+
 ## References
 
 - This is a fork of *ozan-oktay/Attention-Gated-Networks*   
