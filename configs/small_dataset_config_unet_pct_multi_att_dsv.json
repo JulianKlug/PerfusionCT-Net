@@ -6,7 +6,8 @@
     "lr_policy": "step",
     "lr_decay_iters": 250,
     "batchSize": 2,
-    "preloadData": true
+    "preloadData": true,
+    "early_stopping_patience": 10
   },
   "visualisation":{
     "display_port": 8097,
