@@ -116,7 +116,9 @@ class GenevaStrokeDataset_pCT(data.Dataset):
 
         # apply transformations
         if self.transform:
-            input, target = self.transform(input, target)
+            # transformer has to be initialised here to randomize seed
+            transformer = self.transform()
+            input, target = transformer(input, target)
 
         return input, target, index
 

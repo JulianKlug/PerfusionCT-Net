@@ -25,7 +25,7 @@ def train(arguments):
     # Setup Dataset and Augmentation
     ds_class = get_dataset(arch_type)
     ds_path = get_dataset_path(arch_type, json_opts.data_path)
-    ds_transform = get_dataset_transformation(arch_type, opts=json_opts.augmentation)
+    ds_transform = get_dataset_transformation(arch_type, opts=json_opts.augmentation, max_output_channels=json_opts.model.output_nc)
 
     # Setup channels
     channels = json_opts.data_opts.channels
