@@ -1,20 +1,16 @@
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
+import pandas as pd
+import os
 from dataio.loaders import get_dataset, get_dataset_path
 from dataio.transformation import get_dataset_transformation
 from utils.utils import json_file_to_pyobj
 from utils.visualiser import Visualiser
 from utils.error_logger import ErrorLogger
-
+from utils.utils import save_config
 from models import get_model
 
-def train(arguments):
-
-    # Parse input arguments
-    json_filename = arguments.config
-    network_debug = arguments.debug
-
+def train(json_filename, network_debug = False):
     # Load options
     json_opts = json_file_to_pyobj(json_filename)
     train_opts = json_opts.training
@@ -107,7 +103,12 @@ def train(arguments):
             visualizer.plot_current_errors(epoch, error_logger.get_errors(split), split_name=split)
             visualizer.print_current_errors(epoch, error_logger.get_errors(split), split_name=split)
         visualizer.save_plots(epoch, save_frequency=5)
+        current_loss = error_logger.get_errors('validation')['Seg_Loss']
         error_logger.reset()
+
+        val_loss_log = pd.read_excel(os.path.join('checkpoints', json_opts.model.experiment_name, 'loss_log.xlsx'),
+                                     sheet_name='validation').iloc[:, 1:]
+        best_loss = val_loss_log['Seg_Loss'].min()
 
         # Save the model parameters
         if epoch % train_opts.save_epoch_freq == 0:
@@ -115,6 +116,31 @@ def train(arguments):
 
         # Update the model learning rate
         model.update_learning_rate()
+
+        if current_loss <= best_loss or epoch < 100: # start early stopping after epoch 100
+            idx_early_stopping = 0
+            print('current loss {} improved from {} at epoch {}'.format(current_loss, best_loss, val_loss_log.loc[
+                val_loss_log['Seg_Loss'] == best_loss, 'epoch'].item()),
+                  '-- idx_early_stopping = {} / {}'.format(idx_early_stopping,
+                                                           json_opts.training.early_stopping_patience))
+        else:
+            idx_early_stopping += 1
+            print('current loss {} did not improve from {} at epoch {}'.format(current_loss, best_loss,
+                                                                               val_loss_log.loc[val_loss_log[
+                                                                                                    'Seg_Loss'] == best_loss, 'epoch'].item()),
+                  '-- idx_early_stopping = {} / {}'.format(idx_early_stopping,
+                                                           json_opts.training.early_stopping_patience))
+
+        if idx_early_stopping >= json_opts.training.early_stopping_patience:
+            print('early stopping')
+
+            model_path = save_config(json_opts, json_filename, model, val_loss_log, best_loss, test_dataset)
+
+            return val_loss_log.loc[val_loss_log['Seg_Loss'] == best_loss], model_path
+
+    model_path = save_config(json_opts, json_filename, model, val_loss_log, best_loss, test_dataset)
+
+    return val_loss_log.loc[val_loss_log['Seg_Loss'] == best_loss], model_path
 
 
 if __name__ == '__main__':
@@ -126,4 +152,4 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--debug',   help='returns number of parameters and bp/fp runtime', action='store_true')
     args = parser.parse_args()
 
-    train(args)
+    train(args.config, args.debug)
