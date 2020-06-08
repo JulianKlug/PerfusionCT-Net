@@ -1,17 +1,21 @@
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-import pandas as pd
-import os
+
 from dataio.loaders import get_dataset, get_dataset_path
 from dataio.transformation import get_dataset_transformation
 from utils.utils import json_file_to_pyobj
 from utils.visualiser import Visualiser
 from utils.error_logger import ErrorLogger
-from utils.utils import save_config
+
 from models import get_model
 from models.utils import EarlyStopper
 
-def train(json_filename, network_debug = False):
+def train(arguments):
+
+    # Parse input arguments
+    json_filename = arguments.config
+    network_debug = arguments.debug
+
     # Load options
     json_opts = json_file_to_pyobj(json_filename)
     train_opts = json_opts.training
@@ -130,7 +134,6 @@ def train(json_filename, network_debug = False):
 
     return model.best_validation_loss, model_path
 
-
 if __name__ == '__main__':
     import argparse
 
@@ -140,4 +143,4 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--debug',   help='returns number of parameters and bp/fp runtime', action='store_true')
     args = parser.parse_args()
 
-    train(args.config, args.debug)
+    train(args)

@@ -11,7 +11,6 @@ from skimage.exposure import rescale_intensity
 import matplotlib.pyplot as plt
 from openpyxl import load_workbook
 import pandas as pd
-from shutil import rmtree
 
 # Converts a Tensor into a Numpy array
 # |imtype|: the desired type of the converted numpy array
