@@ -23,7 +23,7 @@
     "seed": 42
   },
   "data_path": {
-    "gsd_pCT": "/home/klug/data/working_data/pct_unet_all_2016_2017/rescaled_data_set.npz"
+    "gsd_pCT": "../data/working_data/pct_unet_all_2016_2017/rescaled_data_set.npz"
   },
   "data_opts":{
     "channels": [0]
