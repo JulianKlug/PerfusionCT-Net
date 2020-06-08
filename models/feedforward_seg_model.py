@@ -181,15 +181,9 @@ class FeedForwardSegmentation(BaseModel):
         bsize = size[0]
         return fp/float(bsize), bp/float(bsize)
 
-    # save current weights
     def save(self, network_label, epoch_label):
         self.save_network(self.net, network_label, epoch_label, self.gpu_ids)
-
-    # delete saved weights
-    def delete(self, network_label, epoch_label):
-        save_filename = '{0:03d}_net_{1}.pth'.format(epoch_label, network_label)
-        save_path = os.path.join(self.save_dir, save_filename)
-        if os.path.exists(save_path):
-            os.remove(save_path)
-
+        if self.saved_model is not None:
+            self.delete_saved_network()
+        self.update_saved_model(network_label, epoch_label)
 

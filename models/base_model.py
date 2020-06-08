@@ -15,6 +15,8 @@ class BaseModel():
         self.gpu_ids = []
         self.which_epoch = int(0)
         self.path_pre_trained_model = None
+        self.saved_model = None
+
 
     def name(self):
         return 'BaseModel'
@@ -65,6 +67,13 @@ class BaseModel():
         torch.save(network.cpu().state_dict(), save_path)
         if len(gpu_ids) and torch.cuda.is_available():
             network.cuda(gpu_ids[0])
+
+    def delete_saved_network(self):
+        os.remove(os.path.join(self.save_dir, self.saved_model))
+
+    def update_saved_model(self, network_label, epoch_label):
+        self.saved_model = '{0:03d}_net_{1}.pth'.format(epoch_label, network_label)
+        return self.saved_model
 
     # helper loading function that can be used by subclasses
     def load_network(self, network, network_label, epoch_label):
