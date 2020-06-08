@@ -2,11 +2,11 @@
   "training":{
     "arch_type": "gsd_pCT",
     "n_epochs": 50,
-    "save_epoch_freq": 10,
     "lr_policy": "step",
     "lr_decay_iters": 250,
     "batchSize": 2,
-    "preloadData": true
+    "preloadData": true,
+    "early_stopping_patience": 10
   },
   "visualisation":{
     "display_port": 8097,
@@ -56,7 +56,7 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "random_transform_test_unet_pct_multi_att_dsv",
+    "experiment_name": "config_saving_check",
     "criterion": "dice_loss"
   }
 }

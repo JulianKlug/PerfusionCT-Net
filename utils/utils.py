@@ -218,3 +218,34 @@ def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
 
     # save the workbook
     writer.save()
+
+def save_config(json_opts, json_filename, model):
+    '''
+    Save experiment config and model path
+    :param json_opts: experiment config object
+    :param json_filename: experiment config filename
+    :param model: current model
+    :return: path_to_model
+    '''
+    # get the model path with the epoch of the best model
+    model_path = os.path.join(model.save_dir, '{0:03d}_net_{1}.pth'.format(
+        model.best_epoch,
+        json_opts.model.model_type))
+
+    # save config with path of trained model
+    with open(json_filename) as file:
+        config = json.load(file)
+    config['model']['path_pre_trained_model'] = model_path
+    config['model']['isTrain'] = False
+    config_trained_path = os.path.join(model.save_dir, 'trained_' + json_filename.split('/')[-1])
+    with open(config_trained_path, 'w') as outfile:
+        json.dump(config, outfile, indent=4)
+
+    return model_path
+
+def rm_and_mkdir(path):
+    if os.path.exists(path):
+        print('removing dir ', path)
+        rmtree(path)
+    print('creating dir ', path)
+    os.makedirs(path)

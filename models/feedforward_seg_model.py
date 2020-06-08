@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 from torch.autograd import Variable
 import utils.utils as util
@@ -17,6 +18,11 @@ class FeedForwardSegmentation(BaseModel):
     def initialize(self, opts, **kwargs):
         BaseModel.initialize(self, opts, **kwargs)
         self.isTrain = opts.isTrain
+
+        # initialize state
+        self.best_validation_loss = None
+        self.best_epoch = 0
+        self.is_improving = False
 
         # define network input and output pars
         self.input = None
@@ -134,6 +140,18 @@ class FeedForwardSegmentation(BaseModel):
         return OrderedDict([('Seg_Loss', self.loss_S.data.item())
                             ])
 
+    def update_validation_state(self, epoch):
+        '''
+        Update model state with best state
+        :return: is_improving (boolean, True if model is improving), best validation loss and associated epoch
+        '''
+        self.is_improving = False
+        if self.best_validation_loss is None or self.loss_S.data.item() < self.best_validation_loss:
+            self.best_validation_loss = self.loss_S.data.item()
+            self.best_epoch = epoch
+            self.is_improving = True
+        return self.is_improving, self.best_validation_loss, self.best_epoch
+
     def get_current_visuals(self):
         inp_img = util.tensor2im(self.input, 'img')
         target_img = util.tensor2im(self.target, 'lbl')
@@ -163,5 +181,15 @@ class FeedForwardSegmentation(BaseModel):
         bsize = size[0]
         return fp/float(bsize), bp/float(bsize)
 
-    def save(self, epoch_label):
-        self.save_network(self.net, 'S', epoch_label, self.gpu_ids)
+    # save current weights
+    def save(self, network_label, epoch_label):
+        self.save_network(self.net, network_label, epoch_label, self.gpu_ids)
+
+    # delete saved weights
+    def delete(self, network_label, epoch_label):
+        save_filename = '{0:03d}_net_{1}.pth'.format(epoch_label, network_label)
+        save_path = os.path.join(self.save_dir, save_filename)
+        if os.path.exists(save_path):
+            os.remove(save_path)
+
+

@@ -2,11 +2,11 @@
   "training":{
     "arch_type": "gsd_pCT",
     "n_epochs": 1000,
-    "save_epoch_freq": 10,
     "lr_policy": "step",
     "lr_decay_iters": 250,
     "batchSize": 2,
-    "preloadData": true
+    "preloadData": true,
+    "early_stopping_patience": 10
   },
   "visualisation":{
     "display_port": 8097,
