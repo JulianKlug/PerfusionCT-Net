@@ -80,7 +80,7 @@ def aug_vis(json_filename):
     with PdfPages(save_dir + '/augm_img_vis.pdf') as pdf:
         for page in range(nbr_pages):
             plt.figure()
-            plt.figtext(.5, .9, str(json_opts.augmentation.mlebe))
+            plt.figtext(.05, .9, str(json_opts.augmentation.mlebe), fontsize = 4)
             idx = 1
             for slice in range(len_x * len_y):
                 plt.subplot(len_y, len_x, idx)
@@ -97,7 +97,7 @@ def aug_vis(json_filename):
     with PdfPages(save_dir + '/augm_mask_vis.pdf') as pdf:
         for page in range(nbr_pages):
             plt.figure()
-            plt.figtext(.5, .9, str(json_opts.augmentation.mlebe))
+            plt.figtext(.05, .9, str(json_opts.augmentation.mlebe), fontsize = 4)
             idx = 1
             for slice in range(len_x * len_y):
                 plt.subplot(len_y, len_x, idx)
