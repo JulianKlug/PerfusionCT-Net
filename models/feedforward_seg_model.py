@@ -185,7 +185,7 @@ class FeedForwardSegmentation(BaseModel):
         os.remove(os.path.join(self.save_dir, self.saved_model))
 
     def save(self, network_label, epoch_label):
-        if self.saved_model:
+        if self.saved_model is not None:
             self.delete_old_weights()
         self.save_network(self.net, network_label, epoch_label, self.gpu_ids)
         self.saved_model = '{0:03d}_net_{1}.pth'.format(epoch_label, network_label)
