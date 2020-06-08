@@ -90,7 +90,7 @@ class GenevaStrokeDataset_pCT(data.Dataset):
         if not self.preload_data:
             # select only from data available for this split
             split_specific_index = self.split_indices[index]
-            input = np.load(self.dataset_path, allow_pickle=True)['ct_inputs'][split_specific_index, ..., channels].astype(np.int16)
+            input = np.load(self.dataset_path, allow_pickle=True)['ct_inputs'][split_specific_index, ..., self.channels].astype(np.int16)
             try:
                 target = np.load(self.dataset_path, allow_pickle=True)['ct_lesion_GT'][split_specific_index].astype(np.uint8)
             except:
