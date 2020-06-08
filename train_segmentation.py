@@ -3,7 +3,7 @@ from tqdm import tqdm
 
 from dataio.loaders import get_dataset, get_dataset_path
 from dataio.transformation import get_dataset_transformation
-from utils.utils import json_file_to_pyobj
+from utils.utils import json_file_to_pyobj, save_config
 from utils.visualiser import Visualiser
 from utils.error_logger import ErrorLogger
 
@@ -122,7 +122,6 @@ def train(arguments):
         if model.is_improving:
             save_config(json_opts, json_filename, model)
             model.save(json_opts.model.model_type, epoch)
-            model.delete(json_opts.model.model_type, epoch - 1) # Todo: deal with edgecases where last saved model was not epoch -1 (training patience)
 
         # Update the model learning rate
         model.update_learning_rate()

@@ -68,6 +68,13 @@ class BaseModel():
         if len(gpu_ids) and torch.cuda.is_available():
             network.cuda(gpu_ids[0])
 
+    def delete_saved_network(self):
+        os.remove(os.path.join(self.save_dir, self.saved_model))
+
+    def update_saved_model(self, network_label, epoch_label):
+        self.saved_model = '{0:03d}_net_{1}.pth'.format(epoch_label, network_label)
+        return self.saved_model
+
     # helper loading function that can be used by subclasses
     def load_network(self, network, network_label, epoch_label):
         print('Loading the model {0} - epoch {1}'.format(network_label, epoch_label))
