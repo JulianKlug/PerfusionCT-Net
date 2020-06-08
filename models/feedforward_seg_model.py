@@ -7,6 +7,7 @@ from .layers.loss import *
 from .networks_other import get_scheduler, print_network, benchmark_fp_bp_time
 from .utils import segmentation_stats, get_optimizer, get_criterion
 from .networks.utils import HookBasedFeatureExtractor
+import os
 
 
 class FeedForwardSegmentation(BaseModel):
@@ -163,5 +164,11 @@ class FeedForwardSegmentation(BaseModel):
         bsize = size[0]
         return fp/float(bsize), bp/float(bsize)
 
-    def save(self, epoch_label):
-        self.save_network(self.net, 'S', epoch_label, self.gpu_ids)
+    def delete_old_weigths(self):
+        os.remove(os.path.join(self.save_dir, self.saved_model))
+
+    def save(self, network_label, epoch_label):
+        if self.saved_model:
+            self.delete_old_weigths()
+        self.save_network(self.net, network_label, epoch_label, self.gpu_ids)
+        self.saved_model = '{0:03d}_net_{1}.pth'.format(epoch_label, network_label)

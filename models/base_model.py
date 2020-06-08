@@ -15,6 +15,8 @@ class BaseModel():
         self.gpu_ids = []
         self.which_epoch = int(0)
         self.path_pre_trained_model = None
+        self.saved_model = None
+
 
     def name(self):
         return 'BaseModel'
