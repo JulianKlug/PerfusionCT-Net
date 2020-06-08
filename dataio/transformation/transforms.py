@@ -51,7 +51,7 @@ class Transformations:
         # Affine and Intensity Transformations
         if hasattr(t_opts, 'scale_size'):       self.scale_size = t_opts.scale_size
         # if hasattr(t_opts, 'patch_size'):       self.patch_size = t_opts.patch_size
-        # if hasattr(t_opts, 'shift_val'):        self.shift_val = t_opts.shift
+        # if hasattr(t_opts, 'shift_val'):        self.shift_val = t_opts.shift_val
         if hasattr(t_opts, 'rotate'):           self.rotate_val = t_opts.rotate
         if hasattr(t_opts, 'scale_val'):        self.scale_val = t_opts.scale_val
         if hasattr(t_opts, 'max_deform'):       self.max_deform = t_opts.max_deform
