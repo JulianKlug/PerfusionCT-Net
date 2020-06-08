@@ -115,15 +115,15 @@ def train(json_filename, network_debug = False):
         error_logger.reset()
 
         # Save the model parameters
-        if epoch % train_opts.save_epoch_freq == 0:
+        if model.is_improving:
             save_config(json_opts, json_filename, model)
-            model.save(epoch)
+            model.save(json_opts.model.model_type, epoch)
+            model.delete(json_opts.model.model_type, epoch - 1) # Todo: deal with edgecases where last saved model was not epoch -1 (training patience)
 
         # Update the model learning rate
         model.update_learning_rate()
 
         if early_stopper.should_stop_early:
-            model.save(epoch)
             break
 
     model_path = save_config(json_opts, json_filename, model)

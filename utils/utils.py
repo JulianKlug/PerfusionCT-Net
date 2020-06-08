@@ -229,7 +229,6 @@ def save_config(json_opts, json_filename, model):
     :return: path_to_model
     '''
     # get the model path with the epoch of the best model
-    # Todo - model path is not yet accurate
     model_path = os.path.join(model.save_dir, '{0:03d}_net_{1}.pth'.format(
         model.best_epoch,
         json_opts.model.model_type))
