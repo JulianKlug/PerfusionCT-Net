@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 from torch.autograd import Variable
 import utils.utils as util
@@ -7,7 +8,6 @@ from .layers.loss import *
 from .networks_other import get_scheduler, print_network, benchmark_fp_bp_time
 from .utils import segmentation_stats, get_optimizer, get_criterion
 from .networks.utils import HookBasedFeatureExtractor
-import os
 
 
 class FeedForwardSegmentation(BaseModel):
@@ -18,6 +18,11 @@ class FeedForwardSegmentation(BaseModel):
     def initialize(self, opts, **kwargs):
         BaseModel.initialize(self, opts, **kwargs)
         self.isTrain = opts.isTrain
+
+        # initialize state
+        self.best_validation_loss = None
+        self.best_epoch = 0
+        self.is_improving = False
 
         # define network input and output pars
         self.input = None
@@ -135,6 +140,18 @@ class FeedForwardSegmentation(BaseModel):
         return OrderedDict([('Seg_Loss', self.loss_S.data.item())
                             ])
 
+    def update_validation_state(self, epoch):
+        '''
+        Update model state with best state
+        :return: is_improving (boolean, True if model is improving), best validation loss and associated epoch
+        '''
+        self.is_improving = False
+        if self.best_validation_loss is None or self.loss_S.data.item() < self.best_validation_loss:
+            self.best_validation_loss = self.loss_S.data.item()
+            self.best_epoch = epoch
+            self.is_improving = True
+        return self.is_improving, self.best_validation_loss, self.best_epoch
+
     def get_current_visuals(self):
         inp_img = util.tensor2im(self.input, 'img')
         target_img = util.tensor2im(self.target, 'lbl')
@@ -164,11 +181,12 @@ class FeedForwardSegmentation(BaseModel):
         bsize = size[0]
         return fp/float(bsize), bp/float(bsize)
 
-    def delete_old_weigths(self):
+    def delete_old_weights(self):
         os.remove(os.path.join(self.save_dir, self.saved_model))
 
     def save(self, network_label, epoch_label):
         if self.saved_model:
-            self.delete_old_weigths()
+            self.delete_old_weights()
         self.save_network(self.net, network_label, epoch_label, self.gpu_ids)
         self.saved_model = '{0:03d}_net_{1}.pth'.format(epoch_label, network_label)
+

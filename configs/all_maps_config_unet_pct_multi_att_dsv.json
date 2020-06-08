@@ -2,11 +2,11 @@
   "training":{
     "arch_type": "gsd_pCT",
     "n_epochs": 1000,
-    "save_epoch_freq": 10,
     "lr_policy": "step",
     "lr_decay_iters": 250,
     "batchSize": 2,
-    "preloadData": true
+    "preloadData": true,
+    "early_stopping_patience": 10
   },
   "visualisation":{
     "display_port": 8097,
@@ -30,13 +30,15 @@
   },
   "augmentation": {
     "gsd_pCT": {
-      "shift": [0.1,0.1],
-      "rotate": 15.0,
-      "scale": [0.7,1.3],
-      "intensity": [1.0,1.0],
+      "rotate": 7.5,
+      "scale_val": [0.7,1.3],
+      "max_deform": [5, 5, 5],
+      "elastic_control_points": 7,
       "random_flip_prob": 0.5,
-      "scale_size": [96,96,96,4],
-      "patch_size": [96,96,96]
+      "random_affine_prob": 0.5,
+      "random_elastic_prob": 0.5,
+      "random_noise_prob": 0.5,
+      "scale_size": [96,96,96,4]
     }
   },
   "model":{

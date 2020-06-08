@@ -125,3 +125,37 @@ def classification_scores(gts, preds, labels):
 
 def classification_stats(pred_seg, target, labels):
     return classification_scores(target, pred_seg, labels)
+
+
+class EarlyStopper():
+    def __init__(self, patience):
+        self.index = 0
+        self.patience = patience
+        self.should_stop_early = False
+
+    def update(self, model, epoch):
+        '''
+        Early stopper should be updated upon validation
+        :param model: current model state
+        :param epoch: current epoch
+        :return: boolean, stop or not to stop
+        '''
+        current_loss = model.get_current_errors()['Seg_Loss']
+        best_loss = model.best_validation_loss
+        best_epoch = model.best_epoch
+
+        if current_loss <= best_loss or epoch < 100:  # start early stopping after epoch 100
+            self.index = 0
+            print('current loss {} improved from {} at epoch {}'.format(current_loss, best_loss, best_epoch),
+                  '-- idx_early_stopping = {} / {}'.format(self.index, self.patience))
+        else:
+            self.index += 1
+            print('current loss {} did not improve from {} at epoch {}'.format(current_loss, best_loss, best_epoch),
+                  '-- idx_early_stopping = {} / {}'.format(self.index, self.patience))
+
+        if self.index >= self.patience:
+            print('early stopping')
+            self.should_stop_early = True
+
+        return self.should_stop_early
+

@@ -1,16 +1,21 @@
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-import pandas as pd
-import os
+
 from dataio.loaders import get_dataset, get_dataset_path
 from dataio.transformation import get_dataset_transformation
 from utils.utils import json_file_to_pyobj
 from utils.visualiser import Visualiser
 from utils.error_logger import ErrorLogger
-from utils.utils import save_config
-from models import get_model
 
-def train(json_filename, network_debug = False):
+from models import get_model
+from models.utils import EarlyStopper
+
+def train(arguments):
+
+    # Parse input arguments
+    json_filename = arguments.config
+    network_debug = arguments.debug
+
     # Load options
     json_opts = json_file_to_pyobj(json_filename)
     train_opts = json_opts.training
@@ -21,7 +26,8 @@ def train(json_filename, network_debug = False):
     # Setup Dataset and Augmentation
     ds_class = get_dataset(arch_type)
     ds_path = get_dataset_path(arch_type, json_opts.data_path)
-    ds_transform = get_dataset_transformation(arch_type, opts=json_opts.augmentation, max_output_channels=json_opts.model.output_nc)
+    ds_transform = get_dataset_transformation(arch_type, opts=json_opts.augmentation,
+                                              max_output_channels=json_opts.model.output_nc)
 
     # Setup channels
     channels = json_opts.data_opts.channels
@@ -57,6 +63,8 @@ def train(json_filename, network_debug = False):
 
     # Training Function
     model.set_scheduler(train_opts)
+    # Setup Early Stopping
+    early_stopper = EarlyStopper(json_opts.training.early_stopping_patience)
     for epoch in range(model.which_epoch, train_opts.n_epochs):
         print('(epoch: %d, total # iters: %d)' % (epoch, len(train_loader)))
         train_volumes = []
@@ -92,64 +100,47 @@ def train(json_filename, network_debug = False):
                 stats = model.get_segmentation_stats()
                 error_logger.update({**errors, **stats}, split=split)
 
-                # Visualise predictions
                 if split == 'validation':  # do not look at testing
+                    # Update best validation loss/epoch values
+                    model.update_validation_state(epoch)
+
+                    # Visualise predictions
                     volumes = model.get_current_volumes()
                     visualizer.display_current_volumes(volumes, ids, split, epoch)
                     validation_volumes.append(volumes)
+
+                    early_stopper.update(model, epoch)
 
         # Update the plots
         for split in ['train', 'validation', 'test']:
             visualizer.plot_current_errors(epoch, error_logger.get_errors(split), split_name=split)
             visualizer.print_current_errors(epoch, error_logger.get_errors(split), split_name=split)
         visualizer.save_plots(epoch, save_frequency=5)
-        current_loss = error_logger.get_errors('validation')['Seg_Loss']
         error_logger.reset()
 
-        val_loss_log = pd.read_excel(os.path.join('checkpoints', json_opts.model.experiment_name, 'loss_log.xlsx'),
-                                     sheet_name='validation').iloc[:, 1:]
-        best_loss = val_loss_log['Seg_Loss'].min()
-
         # Save the model parameters
-        if epoch % train_opts.save_epoch_freq == 0:
-            model.save(epoch)
+        if model.is_improving:
+            save_config(json_opts, json_filename, model)
+            model.save(json_opts.model.model_type, epoch)
+            model.delete(json_opts.model.model_type, epoch - 1) # Todo: deal with edgecases where last saved model was not epoch -1 (training patience)
 
         # Update the model learning rate
         model.update_learning_rate()
 
-        if current_loss <= best_loss or epoch < 100: # start early stopping after epoch 100
-            idx_early_stopping = 0
-            print('current loss {} improved from {} at epoch {}'.format(current_loss, best_loss, val_loss_log.loc[
-                val_loss_log['Seg_Loss'] == best_loss, 'epoch'].item()),
-                  '-- idx_early_stopping = {} / {}'.format(idx_early_stopping,
-                                                           json_opts.training.early_stopping_patience))
-        else:
-            idx_early_stopping += 1
-            print('current loss {} did not improve from {} at epoch {}'.format(current_loss, best_loss,
-                                                                               val_loss_log.loc[val_loss_log[
-                                                                                                    'Seg_Loss'] == best_loss, 'epoch'].item()),
-                  '-- idx_early_stopping = {} / {}'.format(idx_early_stopping,
-                                                           json_opts.training.early_stopping_patience))
+        if early_stopper.should_stop_early:
+            break
 
-        if idx_early_stopping >= json_opts.training.early_stopping_patience:
-            print('early stopping')
+    model_path = save_config(json_opts, json_filename, model)
 
-            model_path = save_config(json_opts, json_filename, model, val_loss_log, best_loss, test_dataset)
-
-            return val_loss_log.loc[val_loss_log['Seg_Loss'] == best_loss], model_path
-
-    model_path = save_config(json_opts, json_filename, model, val_loss_log, best_loss, test_dataset)
-
-    return val_loss_log.loc[val_loss_log['Seg_Loss'] == best_loss], model_path
-
+    return model.best_validation_loss, model_path
 
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description='CNN Seg Training Function')
+    parser = argparse.ArgumentParser(description='Unet Seg Training Function')
 
     parser.add_argument('-c', '--config',  help='training config file', required=True)
     parser.add_argument('-d', '--debug',   help='returns number of parameters and bp/fp runtime', action='store_true')
     args = parser.parse_args()
 
-    train(args.config, args.debug)
+    train(args)

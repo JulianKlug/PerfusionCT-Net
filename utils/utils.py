@@ -11,7 +11,6 @@ from skimage.exposure import rescale_intensity
 import matplotlib.pyplot as plt
 from openpyxl import load_workbook
 import pandas as pd
-from shutil import rmtree
 
 # Converts a Tensor into a Numpy array
 # |imtype|: the desired type of the converted numpy array
@@ -220,14 +219,17 @@ def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
     # save the workbook
     writer.save()
 
-def save_config(json_opts, json_filename, model, val_loss_log, best_loss):
-    """
-    function that saves the experiment results and tests the model
-    """
-
+def save_config(json_opts, json_filename, model):
+    '''
+    Save experiment config and model path
+    :param json_opts: experiment config object
+    :param json_filename: experiment config filename
+    :param model: current model
+    :return: path_to_model
+    '''
     # get the model path with the epoch of the best model
     model_path = os.path.join(model.save_dir, '{0:03d}_net_{1}.pth'.format(
-        val_loss_log.loc[val_loss_log['Seg_Loss'] == best_loss, 'epoch'].item(),
+        model.best_epoch,
         json_opts.model.model_type))
 
     # save config with path of trained model
