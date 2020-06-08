@@ -83,6 +83,11 @@ class GenevaStrokeDataset_pCT(data.Dataset):
         return [self.ids[index] for index in indices]
 
     def __getitem__(self, index):
+        '''
+        Return sample at index
+        :param index: int
+        :return: sample (x, y, z, c)
+        '''
         # update the seed to avoid workers sample the same augmentation parameters
         np.random.seed(datetime.datetime.now().second + datetime.datetime.now().microsecond)
 
@@ -105,6 +110,9 @@ class GenevaStrokeDataset_pCT(data.Dataset):
 
             # Apply masks
             input = input * mask
+            # Remove first dimension
+            input = np.squeeze(input, axis=0)
+            assert target.shape == input.shape
 
         else:
             # With preload, it is already only the images from a certain split that are loaded
