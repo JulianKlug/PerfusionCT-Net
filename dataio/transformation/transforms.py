@@ -28,6 +28,7 @@ class Transformations:
         self.rotate_val = 15.0
         self.scale_val = (0.7, 1.3)
         self.flip_axis = (0)  # axes - Axis or tuple of axes along which the image will be flipped.
+        self.flip_prob_per_axis = 0.5
         self.noise_std = (0, 0.25)  # range of noise std
         # self.inten_val = (1.0, 1.0) - Todo implement intensitiy augmentation
 
@@ -49,20 +50,22 @@ class Transformations:
         self.max_output_channels = max_output_channels
 
         # Affine and Intensity Transformations
-        if hasattr(t_opts, 'scale_size'):       self.scale_size = t_opts.scale_size
-        # if hasattr(t_opts, 'patch_size'):       self.patch_size = t_opts.patch_size
-        # if hasattr(t_opts, 'shift_val'):        self.shift_val = t_opts.shift
-        if hasattr(t_opts, 'rotate'):           self.rotate_val = t_opts.rotate
-        if hasattr(t_opts, 'scale_val'):        self.scale_val = t_opts.scale_val
-        if hasattr(t_opts, 'max_deform'):       self.max_deform = t_opts.max_deform
-        if hasattr(t_opts, 'elastic_control_points'):       self.elastic_control_points = t_opts.elastic_control_points
-        if hasattr(t_opts, 'flip_axis'):       self.flip_axis = t_opts.flip_axis
-        if hasattr(t_opts, 'noise_std'):       self.noise_std = t_opts.noise_std
-        # if hasattr(t_opts, 'inten_val'):        self.inten_val = t_opts.intensity
-        if hasattr(t_opts, 'random_flip_prob'): self.random_flip_prob = t_opts.random_flip_prob
-        if hasattr(t_opts, 'random_affine_prob'): self.random_affine_prob = t_opts.random_affine_prob
-        if hasattr(t_opts, 'random_elastic_prob'): self.random_elastic_prob = t_opts.random_elastic_prob
-        if hasattr(t_opts, 'random_noise_prob'): self.random_noise_prob = t_opts.random_noise_prob
+        if hasattr(t_opts, 'scale_size'):               self.scale_size =           t_opts.scale_size
+        # if hasattr(t_opts, 'patch_size'):             self.patch_size =           t_opts.patch_size
+        # if hasattr(t_opts, 'shift_val'):              self.shift_val =            t_opts.shift
+        if hasattr(t_opts, 'rotate'):                   self.rotate_val =           t_opts.rotate
+        if hasattr(t_opts, 'scale_val'):                self.scale_val =            t_opts.scale_val
+        if hasattr(t_opts, 'max_deform'):               self.max_deform =           t_opts.max_deform
+        if hasattr(t_opts, 'elastic_control_points'):   self.elastic_control_points = t_opts.elastic_control_points
+        if hasattr(t_opts, 'flip_axis'):                self.flip_axis =            t_opts.flip_axis
+        if hasattr(t_opts, 'flip_prob_per_axis'):       self.flip_prob_per_axis =   t_opts.flip_prob_per_axis
+        if hasattr(t_opts, 'noise_std'):                self.noise_std =            t_opts.noise_std
+        # if hasattr(t_opts, 'inten_val'):              self.inten_val =            t_opts.intensity
+        
+        if hasattr(t_opts, 'random_flip_prob'):     self.random_flip_prob =     t_opts.random_flip_prob
+        if hasattr(t_opts, 'random_affine_prob'):   self.random_affine_prob =   t_opts.random_affine_prob
+        if hasattr(t_opts, 'random_elastic_prob'):  self.random_elastic_prob =  t_opts.random_elastic_prob
+        if hasattr(t_opts, 'random_noise_prob'):    self.random_noise_prob =    t_opts.random_noise_prob
 
     def get_transformation(self):
         '''
@@ -81,7 +84,7 @@ class Transformations:
             ts.ToTensor(),
             ts.Pad(size=self.scale_size),
             ts.TypeCast(['float', 'float']),
-            RandomFlipTransform(axes=self.flip_axis, p=self.random_flip_prob, seed=seed, max_output_channels=self.max_output_channels),
+            RandomFlipTransform(axes=self.flip_axis, flip_probability=self.flip_prob_per_axis, p=self.random_flip_prob, seed=seed, max_output_channels=self.max_output_channels),
             RandomElasticTransform(seed=seed, p=self.random_elastic_prob, image_interpolation=Interpolation.BSPLINE, max_displacement=self.max_deform,
                                    num_control_points=self.elastic_control_points,  max_output_channels=self.max_output_channels),
             RandomAffineTransform(scales = self.scale_val, degrees = (self.rotate_val), isotropic = True, default_pad_value = 0,
@@ -113,3 +116,4 @@ class Transformations:
         ])
 
         return valid_transform
+    
