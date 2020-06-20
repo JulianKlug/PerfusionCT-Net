@@ -10,7 +10,6 @@ from typing import Optional, Tuple, Union
 from torch.nn.functional import pad
 from torchio.transforms import RandomAffine, Interpolation, RandomFlip, RandomNoise, RandomElasticDeformation
 
-
 def center_crop(x, center_crop_size):
     assert x.ndim == 3
     centerw, centerh = x.shape[1] // 2, x.shape[2] // 2
@@ -485,16 +484,18 @@ class TorchIOTransformer(object):
             outputs = []
             for idx, _input in enumerate(inputs):
                 # todo also apply transformer to mask and then reapply mask to input/label
+                p_input = _input.permute(3, 0, 1, 2) # channels first for torchio
                 # Detect masks (label mask and brain mask)
                 n_unique = list(_input.unique().size())[0]
                 if n_unique <= self.max_output_channels or n_unique <= 2:
                     transformer = self.get_transformer(mask=True)
-                    input_tf = transformer(_input.unsqueeze(0)).squeeze(0)
+                    input_tf = transformer(_input)
                     input_tf = input_tf.round()
                     assert _input.unique().size() == input_tf.unique().size()
                 else:
                     transformer = self.get_transformer()
-                    input_tf = transformer(_input.unsqueeze(0)).squeeze(0)
+                    input_tf = transformer(_input)
+                input_tf = input_tf.permute(1, 2, 3, 0) # replace channels last
 
                 outputs.append(input_tf)
             return outputs if idx >= 1 else outputs[0]
@@ -511,7 +512,6 @@ class RandomElasticTransform(TorchIOTransformer):
             image_interpolation: Interpolation = Interpolation.LINEAR,
             p: float = 1,
             seed: Optional[int] = None,
-            is_tensor = True,
             max_output_channels = 10
             ):
         def get_torchio_transformer(mask=False):
@@ -519,7 +519,7 @@ class RandomElasticTransform(TorchIOTransformer):
                 interpolation = Interpolation.LINEAR
             else:
                 interpolation = image_interpolation
-            return RandomElasticDeformation(num_control_points, max_displacement, locked_borders, interpolation, p, seed, is_tensor=is_tensor)
+            return RandomElasticDeformation(num_control_points=num_control_points, max_displacement=max_displacement, locked_borders=locked_borders, image_interpolation=image_interpolation, p=p, seed=seed)
         super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels)
 
 
@@ -528,12 +528,13 @@ class RandomAffineTransform(TorchIOTransformer):
             self,
             scales: Tuple[float, float] = (0.9, 1.1),
             degrees = 10,
+            translation = 0,
+            center: str = 'image',
             isotropic: bool = False,
             default_pad_value: Union[str, float] = 'otsu',
             image_interpolation: Interpolation = Interpolation.LINEAR,
             p: float = 1,
             seed: Optional[int] = None,
-            is_tensor=True,
             max_output_channels=10
     ):
         def get_torchio_transformer(mask=False):
@@ -541,7 +542,7 @@ class RandomAffineTransform(TorchIOTransformer):
                 interpolation = Interpolation.LINEAR
             else:
                 interpolation = image_interpolation
-            return RandomAffine(scales, degrees, isotropic, default_pad_value, interpolation, p, seed, is_tensor)
+            return RandomAffine(scales=scales, degrees=degrees, translation=translation, isotropic=isotropic, center=center, default_pad_value=default_pad_value, image_interpolation=image_interpolation, p=p, seed=seed)
         super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels)
 
 
@@ -552,21 +553,20 @@ class RandomFlipTransform(TorchIOTransformer):
             flip_probability: float = 0.5,
             p: float = 1,
             seed: Optional[int] = None,
-            is_tensor=True,
             max_output_channels=10
     ):
         def get_torchio_transformer(mask=False):
-            return RandomFlip(axes, flip_probability, p, seed, is_tensor)
+            return RandomFlip(axes=axes, flip_probability=flip_probability, p=p, seed=seed)
         super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels)
 
 
 class RandomNoiseTransform(TorchIOTransformer):
     def __init__(
             self,
+            mean: Union[float, Tuple[float, float]] = 0,
             std: Tuple[float, float] = (0, 0.25),
             p: float = 1,
             seed: Optional[int] = None,
-            is_tensor=True,
             max_output_channels=10
     ):
         def get_torchio_transformer(mask=False):
@@ -575,5 +575,5 @@ class RandomNoiseTransform(TorchIOTransformer):
                 proba = 0
             else:
                 proba = p
-            return RandomNoise(std, proba, seed, is_tensor)
+            return RandomNoise(mean=mean, std=std, p=proba, seed=seed)
         super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels)
