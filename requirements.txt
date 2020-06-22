@@ -15,4 +15,5 @@ dominate>=2.5.1
 openpyxl
 xlrd>=1.1.0
 git+git://github.com/ozan-oktay/torchsample#egg=torchsample-0.1.3
-git+git://github.com/MonsieurWave/torchio#egg=torchio
+git+git://github.com/MonsieurWave/torchio@e87775bb0dc87033b377ca1b8d180e5048607ae4#egg=torchio
+git+git://github.com/MonsieurWave/Geneva-Stroke-Preprocessing#egg=gsprep
