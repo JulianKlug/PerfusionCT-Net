@@ -485,7 +485,7 @@ class TorchIOTransformer(object):
             outputs = []
             for idx, _input in enumerate(inputs):
                 # todo also apply transformer to mask and then reapply mask to input/label
-                p_input = _input.permute(3, 0, 1, 2)  # channels first for torchio
+                _input = _input.permute(3, 0, 1, 2)  # channels first for torchio
                 # Detect masks (label mask and brain mask)
                 n_unique = list(_input.unique().size())[0]
                 if n_unique <= self.max_output_channels or n_unique <= 2:
@@ -522,7 +522,7 @@ class RandomElasticTransform(TorchIOTransformer):
             ):
         def get_torchio_transformer(mask=False):
             if mask:
-                interpolation = 'nearest'
+                interpolation = 'linear'
             else:
                 interpolation = image_interpolation
             return RandomElasticDeformation(num_control_points=num_control_points, max_displacement=max_displacement,
@@ -548,7 +548,7 @@ class RandomAffineTransform(TorchIOTransformer):
     ):
         def get_torchio_transformer(mask=False):
             if mask:
-                interpolation = 'nearest'
+                interpolation = 'linear'
             else:
                 interpolation = image_interpolation
             return RandomAffine(scales=scales, degrees=degrees, translation=translation, isotropic=isotropic,
