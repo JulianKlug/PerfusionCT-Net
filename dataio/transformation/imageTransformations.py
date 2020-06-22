@@ -493,10 +493,13 @@ class TorchIOTransformer(object):
                     input_tf = transformer(_input)
                     input_tf = input_tf.round()
                     if self.verbose and _input.unique().size() != input_tf.unique().size():
-                        print(f'WARNING... Input mask and its augmentation differ in number of classes: '
-                              f'input {_input.unique().size()} vs. augmented {input_tf.unique().size()}'
-                              f'for {transformer}')
-                    assert _input.unique().size() >= input_tf.unique().size()
+                        print(f'WARNING... Input mask and its transformation differ in number of classes: '
+                              f'input {_input.unique().size()} vs. transformed {input_tf.unique().size()} '
+                              f'for {transformer} and number of voxels in initial mask: {_input.sum()}\n'
+                              f'Returning non transformed input.')
+                        # Avoid loss of classes by transformation
+                        # (either due to extreme transformation or very little voxels of a certain class present)
+                        return inputs  # return bot all inputs untransformed
                 else:
                     transformer = self.get_transformer()
                     input_tf = transformer(_input)
