@@ -50,6 +50,7 @@ def plot_logs(log_file, split_names=None, save_dir=None, single_metric=None):
     figure_name = experiment_name + '_figures'
     if single_metric is not None: figure_name = experiment_name + '_' + single_metric
     plt.savefig(os.path.join(save_dir, figure_name + '.png'), format="png", dpi=300)
+    plt.close(fig)
 
 
 if __name__ == '__main__':
