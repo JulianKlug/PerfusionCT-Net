@@ -23,7 +23,7 @@
     "seed": 42
   },
   "data_path": {
-    "gsd_pCT": "/home/klug/temp/pct_unet_test/rescaled_data_set.npz"
+    "gsd_pCT": "/home/klug/working_data/perfusion_maps/small_rescaled_data_set.npz"
   },
   "data_opts":{
     "channels": [0]
@@ -31,9 +31,9 @@
   "augmentation": {
     "gsd_pCT": {
       "rotate": 7.5,
-      "scale_val": [0.7,1.3],
-      "max_deform": [0, 0, 0],
-      "shift_val": [0, 0],
+      "scale_val": [0.8, 1.2],
+      "max_deform": [15, 15, 5],
+      "shift_val": [0, 5],
       "elastic_control_points": 7,
       "random_flip_prob": 0.5,
       "random_affine_prob": 0.5,
