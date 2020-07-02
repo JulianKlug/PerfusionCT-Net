@@ -220,17 +220,18 @@ def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
     # save the workbook
     writer.save()
 
-def save_config(json_opts, json_filename, model):
+def save_config(json_opts, json_filename, model, epoch):
     '''
     Save experiment config and model path
     :param json_opts: experiment config object
     :param json_filename: experiment config filename
     :param model: current model
+    :param epoch: epoch at which best model was saved
     :return: path_to_model
     '''
     # get the model path with the epoch of the best model
     model_path = os.path.join(model.save_dir, '{0:03d}_net_{1}.pth'.format(
-        model.best_epoch,
+        epoch,
         json_opts.model.model_type))
 
     # save config with path of trained model

@@ -128,34 +128,67 @@ def classification_stats(pred_seg, target, labels):
 
 
 class EarlyStopper():
-    def __init__(self, patience):
+    def __init__(self, json_opts, verbose=False):
+        self.patience = json_opts.patience if hasattr(json_opts, 'patience') else 10
+        self.min_epochs = json_opts.min_epochs if hasattr(json_opts, 'min_epochs') else 100
+        self.monitor = json_opts.monitor if hasattr(json_opts, 'monitor') else 'Seg_Loss'
+        self.verbose = verbose
+
         self.index = 0
-        self.patience = patience
         self.should_stop_early = False
+        self.is_improving = True
+        # Todo - it would probably make more sense to keep track of these variables in the model itself
+        self.best_loss = None
+        self.best_epoch = None
+        self.current_loss_total = 0
+        self.current_loss_count = 0
 
-    def update(self, model, epoch):
-        '''
-        Early stopper should be updated upon validation
-        :param model: current model state
-        :param epoch: current epoch
-        :return: boolean, stop or not to stop
-        '''
-        current_loss = model.get_current_errors()['Seg_Loss']
-        best_loss = model.best_validation_loss
-        best_epoch = model.best_epoch
+        if self.verbose:
+            print(f'Using early stopping with: {json_opts}')
 
-        if current_loss <= best_loss or epoch < 100:  # start early stopping after epoch 100
+    def update(self, losses):
+        '''
+        Early stopper should be updated upon every batch for validation
+        :param losses: OrderedDict of losses by their name as referenced in monitor
+        '''
+        self.current_loss_total += losses[self.monitor]
+        self.current_loss_count += 1
+
+    def get_current_validation_loss(self):
+        if self.current_loss_total is None:
+            return None
+        return self.current_loss_total / self.current_loss_count
+
+    def interrogate(self, epoch):
+        current_loss = self.get_current_validation_loss()
+
+        if self.best_loss is None:
+            self.best_loss = current_loss
+            self.best_epoch = epoch
+
+        elif current_loss <= self.best_loss:
             self.index = 0
-            print('current loss {} improved from {} at epoch {}'.format(current_loss, best_loss, best_epoch),
-                  '-- idx_early_stopping = {} / {}'.format(self.index, self.patience))
+            self.best_loss = current_loss
+            self.best_epoch = epoch
+            self.is_improving = True
+            if self.verbose:
+                print('current loss {} improved from {} at epoch {}'.format(current_loss, self.best_loss, self.best_epoch),
+                      '-- idx_early_stopping = {} / {}'.format(self.index, self.patience))
         else:
             self.index += 1
-            print('current loss {} did not improve from {} at epoch {}'.format(current_loss, best_loss, best_epoch),
-                  '-- idx_early_stopping = {} / {}'.format(self.index, self.patience))
+            self.is_improving = False
+            if self.verbose:
+                print('current loss {} did not improve from {} at epoch {}'.format(current_loss, self.best_loss, self.best_epoch),
+                      '-- idx_early_stopping = {} / {}'.format(self.index, self.patience))
 
-        if self.index >= self.patience:
-            print('early stopping')
+        if self.index >= self.patience and epoch >= self.min_epochs:  # start early stopping after epoch 100
+            print('-- early stopping')
             self.should_stop_early = True
+
+        self.reset()
 
         return self.should_stop_early
 
+    def reset(self):
+        self.current_loss_total = 0
+        self.current_loss_count = 0

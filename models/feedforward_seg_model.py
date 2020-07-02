@@ -19,10 +19,6 @@ class FeedForwardSegmentation(BaseModel):
         BaseModel.initialize(self, opts, **kwargs)
         self.isTrain = opts.isTrain
 
-        # initialize state
-        self.best_validation_loss = None
-        self.best_epoch = 0
-        self.is_improving = False
 
         # define network input and output pars
         self.input = None
@@ -139,18 +135,6 @@ class FeedForwardSegmentation(BaseModel):
     def get_current_errors(self):
         return OrderedDict([('Seg_Loss', self.loss_S.data.item())
                             ])
-
-    def update_validation_state(self, epoch):
-        '''
-        Update model state with best state
-        :return: is_improving (boolean, True if model is improving), best validation loss and associated epoch
-        '''
-        self.is_improving = False
-        if self.best_validation_loss is None or self.loss_S.data.item() < self.best_validation_loss:
-            self.best_validation_loss = self.loss_S.data.item()
-            self.best_epoch = epoch
-            self.is_improving = True
-        return self.is_improving, self.best_validation_loss, self.best_epoch
 
     def get_current_visuals(self):
         inp_img = util.tensor2im(self.input, 'img')
