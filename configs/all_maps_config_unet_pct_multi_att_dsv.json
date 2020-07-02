@@ -6,7 +6,12 @@
     "lr_decay_iters": 250,
     "batchSize": 2,
     "preloadData": true,
-    "early_stopping_patience": 10
+    "early_stopping":{
+      "patience": 10,
+      "min_epochs": 15,
+      "monitor": "Seg_Loss"
+    },
+    "verbose": "True"
   },
   "visualisation":{
     "display_port": 8097,

@@ -6,7 +6,12 @@
     "lr_decay_iters": 250,
     "batchSize": 2,
     "preloadData": true,
-    "early_stopping_patience": 10
+    "early_stopping":{
+      "patience": 10,
+      "min_epochs": 100,
+      "monitor": "Seg_Loss"
+    },
+    "verbose": "True"
   },
   "visualisation":{
     "display_port": 8097,
@@ -23,7 +28,7 @@
     "seed": 42
   },
   "data_path": {
-    "gsd_pCT": "/home/klug/data/working_data/pct_unet_all_2016_2017/rescaled_data_set.npz"
+    "gsd_pCT": "/home/klug/working_data/perfusion_maps/rescaled_data_set.npz"
   },
   "data_opts":{
     "channels": [0]
@@ -56,7 +61,7 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "tio_augmentations_tmax_unet_pct_multi_att_dsv",
+    "experiment_name": "fix_early_stopping",
     "criterion": "dice_loss"
   }
 }

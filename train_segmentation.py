@@ -64,7 +64,7 @@ def train(arguments):
     # Training Function
     model.set_scheduler(train_opts)
     # Setup Early Stopping
-    early_stopper = EarlyStopper(json_opts.training.early_stopping_patience)
+    early_stopper = EarlyStopper(json_opts.training.early_stopping, verbose=json_opts.training.verbose)
     for epoch in range(model.which_epoch, train_opts.n_epochs):
         print('(epoch: %d, total # iters: %d)' % (epoch, len(train_loader)))
         train_volumes = []
@@ -101,15 +101,13 @@ def train(arguments):
                 error_logger.update({**errors, **stats}, split=split)
 
                 if split == 'validation':  # do not look at testing
-                    # Update best validation loss/epoch values
-                    model.update_validation_state(epoch)
-
                     # Visualise predictions
                     volumes = model.get_current_volumes()
                     visualizer.display_current_volumes(volumes, ids, split, epoch)
                     validation_volumes.append(volumes)
 
-                    early_stopper.update(model, epoch)
+                    # Track validation loss values
+                    early_stopper.update({**errors, **stats})
 
         # Update the plots
         for split in ['train', 'validation', 'test']:
@@ -118,20 +116,17 @@ def train(arguments):
         visualizer.save_plots(epoch, save_frequency=5)
         error_logger.reset()
 
+        if early_stopper.interrogate(epoch):
+            break
+
         # Save the model parameters
-        if model.is_improving:
-            save_config(json_opts, json_filename, model)
+        if not early_stopper.is_improving is False:
             model.save(json_opts.model.model_type, epoch)
+            save_config(json_opts, json_filename, model, epoch)
 
         # Update the model learning rate
         model.update_learning_rate()
 
-        if early_stopper.should_stop_early:
-            break
-
-    model_path = save_config(json_opts, json_filename, model)
-
-    return model.best_validation_loss, model_path
 
 if __name__ == '__main__':
     import argparse
