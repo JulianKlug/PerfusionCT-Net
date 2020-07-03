@@ -101,7 +101,7 @@ class Transformations:
             RandomAffineTransform(scales=self.scale_val, degrees=self.rotate_val, translation=self.shift_val,
                                   isotropic=True, default_pad_value=0,
                                   image_interpolation='bspline', seed=seed, p=self.random_affine_prob,
-                                  max_output_channels=self.max_output_channels, verbose=True, prudent=self.prudent),
+                                  max_output_channels=self.max_output_channels, verbose=self.verbose, prudent=self.prudent),
             RandomNoiseTransform(mean=self.noise_mean, std=self.noise_std, seed=seed, p=self.random_noise_prob,
                                  max_output_channels=self.max_output_channels, prudent=self.prudent),
             ts.ChannelsFirst(),
