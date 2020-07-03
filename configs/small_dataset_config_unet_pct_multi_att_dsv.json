@@ -44,7 +44,8 @@
       "random_affine_prob": 0.5,
       "random_elastic_prob": 0.5,
       "random_noise_prob": 0.5,
-      "scale_size": [96,96,96,1]
+      "scale_size": [96,96,96,1],
+      "prudent": "False"
     }
   },
   "model":{

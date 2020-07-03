@@ -475,9 +475,10 @@ class PadToScale(object):
 
 
 class TorchIOTransformer(object):
-    def __init__(self, get_transformer, max_output_channels=10, verbose=False):
+    def __init__(self, get_transformer, max_output_channels=10, prudent=True, verbose=False):
         self.get_transformer = get_transformer
         self.max_output_channels = max_output_channels
+        self.prudent = prudent
         self.verbose = verbose
 
     def __call__(self, *inputs):
@@ -492,14 +493,16 @@ class TorchIOTransformer(object):
                     transformer = self.get_transformer(mask=True)
                     input_tf = transformer(_input)
                     input_tf = input_tf.round()
-                    if self.verbose and _input.unique().size() != input_tf.unique().size():
-                        print(f'WARNING... Input mask and its transformation differ in number of classes: '
-                              f'input {_input.unique().size()} vs. transformed {input_tf.unique().size()} '
-                              f'for {transformer} and number of voxels in initial mask: {_input.sum()}\n'
-                              f'Returning non transformed input.')
-                        # Avoid loss of classes by transformation
-                        # (either due to extreme transformation or very little voxels of a certain class present)
-                        return inputs  # return bot all inputs untransformed
+                    if _input.unique().size() != input_tf.unique().size():
+                        if self.verbose:
+                            print(f'WARNING... Input mask and its transformation differ in number of classes: '
+                                  f'input {_input.unique().size()} vs. transformed {input_tf.unique().size()} '
+                                  f'for {transformer} and number of voxels in initial mask: {_input.sum()}')
+                        if self.prudent:
+                            if self.verbose: print('Returning non transformed input.')
+                            # Avoid loss of classes by transformation
+                            # (either due to extreme transformation or very little voxels of a certain class present)
+                            return inputs  # return bot all inputs untransformed
                 else:
                     transformer = self.get_transformer()
                     input_tf = transformer(_input)
@@ -521,7 +524,8 @@ class RandomElasticTransform(TorchIOTransformer):
             p: float = 1,
             seed: Optional[int] = None,
             max_output_channels = 10,
-            verbose = False
+            verbose = False,
+            prudent=True
             ):
         def get_torchio_transformer(mask=False):
             if mask:
@@ -531,7 +535,7 @@ class RandomElasticTransform(TorchIOTransformer):
             return RandomElasticDeformation(num_control_points=num_control_points, max_displacement=max_displacement,
                                             locked_borders=locked_borders, image_interpolation=interpolation, p=p,
                                             seed=seed)
-        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels, verbose=verbose)
+        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels, verbose=verbose, prudent=prudent)
 
 
 class RandomAffineTransform(TorchIOTransformer):
@@ -547,7 +551,8 @@ class RandomAffineTransform(TorchIOTransformer):
             p: float = 1,
             seed: Optional[int] = None,
             max_output_channels=10,
-            verbose = False
+            verbose = False,
+            prudent=True
     ):
         def get_torchio_transformer(mask=False):
             if mask:
@@ -557,7 +562,7 @@ class RandomAffineTransform(TorchIOTransformer):
             return RandomAffine(scales=scales, degrees=degrees, translation=translation, isotropic=isotropic,
                                 center=center, default_pad_value=default_pad_value, image_interpolation=interpolation,
                                 p=p, seed=seed)
-        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels, verbose=verbose)
+        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels, verbose=verbose, prudent=prudent)
 
 
 class RandomFlipTransform(TorchIOTransformer):
@@ -568,11 +573,12 @@ class RandomFlipTransform(TorchIOTransformer):
             p: float = 1,
             seed: Optional[int] = None,
             max_output_channels=10,
-            verbose = False
+            verbose = False,
+            prudent=True
     ):
         def get_torchio_transformer(mask=False):
             return RandomFlip(axes=axes, flip_probability=flip_probability, p=p, seed=seed)
-        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels, verbose=verbose)
+        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels, verbose=verbose, prudent=prudent)
 
 
 class RandomNoiseTransform(TorchIOTransformer):
@@ -582,7 +588,8 @@ class RandomNoiseTransform(TorchIOTransformer):
             std: Tuple[float, float] = (0, 0.25),
             p: float = 1,
             seed: Optional[int] = None,
-            max_output_channels=10
+            max_output_channels=10,
+            prudent=True
     ):
         def get_torchio_transformer(mask=False):
             if mask:
@@ -591,4 +598,4 @@ class RandomNoiseTransform(TorchIOTransformer):
             else:
                 proba = p
             return RandomNoise(mean=mean, std=std, p=proba, seed=seed)
-        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels)
+        super().__init__(get_transformer=get_torchio_transformer, max_output_channels=max_output_channels, prudent=prudent)
