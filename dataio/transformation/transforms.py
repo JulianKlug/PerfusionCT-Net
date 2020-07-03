@@ -40,14 +40,17 @@ class Transformations:
         self.random_elastic_prob = 0.0
         self.random_noise_prob = 0.0
 
+        self.prudent = True
+
     def print(self):
         print('\n\n############# Augmentation Parameters #############')
         pprint(vars(self))
         print('###################################################\n\n')
 
-    def initialise(self, opts, max_output_channels=10):
+    def initialise(self, opts, max_output_channels=10, verbose=True):
         t_opts = getattr(opts, self.name)
         self.max_output_channels = max_output_channels
+        self.verbose = verbose
 
         # Affine and Intensity Transformations
         if hasattr(t_opts, 'scale_size'):               self.scale_size =           t_opts.scale_size
@@ -68,6 +71,9 @@ class Transformations:
         if hasattr(t_opts, 'random_elastic_prob'):  self.random_elastic_prob =  t_opts.random_elastic_prob
         if hasattr(t_opts, 'random_noise_prob'):    self.random_noise_prob =    t_opts.random_noise_prob
 
+        # Define carefullness of transformation (True: do not allow loss of classes due to augmentation / False)
+        if hasattr(t_opts, 'prudent'):              self.prudent =              t_opts.prudent
+
     def get_transformation(self):
         '''
         Get transformations for this dataset
@@ -86,18 +92,18 @@ class Transformations:
             ts.Pad(size=self.scale_size),
             ts.TypeCast(['float', 'float']),
             RandomFlipTransform(axes=self.flip_axis, flip_probability=self.flip_prob_per_axis, p=self.random_flip_prob,
-                                seed=seed, max_output_channels=self.max_output_channels),
+                                seed=seed, max_output_channels=self.max_output_channels, prudent=self.prudent),
             RandomElasticTransform(max_displacement=self.max_deform,
                                    num_control_points=self.elastic_control_points,
                                    image_interpolation='bspline',
                                    seed=seed, p=self.random_elastic_prob,
-                                   max_output_channels=self.max_output_channels, verbose=True),
+                                   max_output_channels=self.max_output_channels, verbose=self.verbose, prudent=self.prudent),
             RandomAffineTransform(scales=self.scale_val, degrees=self.rotate_val, translation=self.shift_val,
                                   isotropic=True, default_pad_value=0,
                                   image_interpolation='bspline', seed=seed, p=self.random_affine_prob,
-                                  max_output_channels=self.max_output_channels, verbose=True),
+                                  max_output_channels=self.max_output_channels, verbose=True, prudent=self.prudent),
             RandomNoiseTransform(mean=self.noise_mean, std=self.noise_std, seed=seed, p=self.random_noise_prob,
-                                 max_output_channels=self.max_output_channels),
+                                 max_output_channels=self.max_output_channels, prudent=self.prudent),
             ts.ChannelsFirst(),
             # ts.NormalizeMedicPercentile(norm_flag=(True, False)),
             # Todo apply channel wise normalisation
