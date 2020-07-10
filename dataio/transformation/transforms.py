@@ -110,9 +110,9 @@ class Transformations:
         valid_transform = ts.Compose([
             ts.ToTensor(),
             ts.Pad(size=self.scale_size),
+            ts.TypeCast(['float', 'float']),
             StandardizeImage(norm_flag=[True, True, True, False]),
             ts.ChannelsFirst(),
-            ts.TypeCast(['float', 'float']),
             ts.TypeCast(['float', 'long'])
         ])
 

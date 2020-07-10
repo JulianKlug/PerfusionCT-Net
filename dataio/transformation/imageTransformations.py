@@ -596,14 +596,14 @@ class RandomNoiseTransform(TorchIOTransformer):
 
 class StandardizeImage(object):
     """
-    Normalises given volume to zero mean
-    and unit standard deviation.
+    Normalises given volume to zero mean and unit standard deviation.
+    :arg norm_flag: List[bool], define which axis should be normalised and which should not
     """
 
     def __init__(self,
                  norm_flag=[True, True, True, False]):
         """
-        :param norm_flag: [bool] list of flags for normalisation
+        :param norm_flag: [bool] list of flags for normalisation, defining which axis should be normalised
         """
         self.norm_flag = norm_flag
 
