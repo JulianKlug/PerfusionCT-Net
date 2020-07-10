@@ -1,14 +1,14 @@
 from dataio.transformation.transforms import Transformations
 
 
-def get_dataset_transformation(name, opts=None, max_output_channels=None):
+def get_dataset_transformation(name, opts=None, max_output_channels=None, verbose=True):
     '''
     :param opts: augmentation parameters
     :return:
     '''
     # Build the transformation object and initialise the augmentation parameters
     trans_obj = Transformations(name)
-    if opts: trans_obj.initialise(opts, max_output_channels)
+    if opts: trans_obj.initialise(opts, max_output_channels, verbose)
 
     # Print the input options
     trans_obj.print()
