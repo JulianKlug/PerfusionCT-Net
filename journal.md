@@ -59,9 +59,40 @@ Implemented image-wise standardisation to obtain zero mean and unit standard dev
 
 ### Conclusion
 
-- Standardisation seems to improve performance slightly. 
+- Standardisation seems to improve performance slightly.
+- However, stability (and resistance to overfitting?) seems to be worse.
 
+## Optimisation algorithm 
 
+|Start Date|End Date  |
+|----------|----------|
+|2020-07-10|2020-07-13|
+
+Tested adam optimizer and learning rate adaptation "Plateau" policy, as this combination has been reported to perform particularly with our architecture on the [MLEBE dataset](https://github.com/Jimmy2027/MLEBE). 
+We thus compare stochastic gradient descent (SGD) with Adam as optimizer as well as a "Step" vs a "Plateau" learning rate adaption strategy. 
+
+Definitions of learning rate strategies:
+````python
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
+# Step:
+StepLR(optimizer, step_size=250, gamma=0.5)
+# Plateau
+ReduceLROnPlateau(optimizer, mode='min', factor=0.1, threshold=0.01, patience=5)
+````
+
+|Optimizer & LR policy | SGD | Adam  |
+|----------|----------|----------|
+| Step LR |![SGD & LR Step](./static/journal/sgd_lr_step_dice.png "SGD & LR Step")  <br/><br/> Best Validation Dice:  0.222637893 <br/> Epoch: 186 | ![Adam & LR Step](./static/journal/adam_lr_step_dice.png "Adam & LR Step")  <br/><br/> Best Validation Dice:  0.201341671 <br/> Epoch: 115|
+| Reduce LR on plateau |![SGD & LR Plateau](./static/journal/sgd_lr_plateau_dice.png "SGD & LR Plateau")  <br/><br/> Best Validation Dice:  0.080664843 <br/> Epoch: 67| ![Adam & LR Plateau](./static/journal/adam_lr_plateau_dice.png "Adam & LR Plateau")  <br/><br/> Best Validation Dice:  0.20092963 <br/> Epoch: 123|
+
+### Conclusion
+
+- SGD with LR step policy still seems to perform best on the gsd dataset. 
+- Adam seems to train faster. 
+- LR plateau policy seems to offer more stability for Adam
+- LR plateau policy performs terribly with SGD
+
+As some future architectural changes might change the outcome of this comparison, SGD with LR step vs. Adam with plateau should be integrated in a future hyperoptimisation.
 
 # TODO
 
