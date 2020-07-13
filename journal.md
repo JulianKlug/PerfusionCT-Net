@@ -43,6 +43,25 @@ Implemented focal Tversky (FT) loss function with multi-channel output.
 - Maybe more accurate on small segments
 - Maybe more prone to overfitting
 
+## Standardisation 
+
+|Start Date|End Date  |
+|----------|----------|
+|2020-06-01|2020-06-30|
+
+Contributor: [Quentin Uhl](https://github.com/QuentinUhl)
+
+Implemented image-wise standardisation to obtain zero mean and unit standard deviation. 
+
+|Dice without standardisation|Dice with standardisation  |
+|----------|----------|
+|![Dice without std](./static/journal/without_standardisation_dice_over_time.png "Dice without standardisation") <br/><br/> Best Validation Dice:  0.211099805| ![Dice without std](./static/journal/with_standardisation_dice_over_time.png "Dice without standardisation")  <br/><br/> Best Validation Dice:  0.222637893|
+
+### Conclusion
+
+- Standardisation seems to improve performance slightly. 
+
+
 
 # TODO
 
