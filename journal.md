@@ -94,6 +94,28 @@ ReduceLROnPlateau(optimizer, mode='min', factor=0.1, threshold=0.01, patience=5)
 
 As some future architectural changes might change the outcome of this comparison, SGD with LR step vs. Adam with plateau should be integrated in a future hyperoptimisation.
 
+## Weight decay
+
+|Start Date|End Date  |
+|----------|----------|
+|2020-07-25|2020-07-26|
+
+Evaluated weight decay to reduce overfitting. 
+
+|Model |Lambda 10<sup>-4</sup> | Lambda 10<sup>-2</sup>  | Lambda 10<sup>-1</sup>| 
+|----------|----------|----------|----------|
+| Dice Loss |![e-4](./static/journal/l2_evaluation/l2_e-4.png "Lambda e-4") | ![e-2](./static/journal/l2_evaluation/l2_e-2.png "Lambda e-2")| ![e-1](./static/journal/l2_evaluation/l2_e-1.png "Lambda e-1")|
+| Best validation class 1 dice |0.224319922| 0.22760875| 0.200507353
+| Best validation epoch | 120|219| 99
+
+### Conclusion
+
+- Adjusting weight decay is effective in reducing overfitting.
+- However, weight decay slows down overall learning
+- At lambda 10<sup>-1</sup>, weight decay begins to hurt performance
+- Weight decay should be integrated in a future grid search
+
+
 # TODO
 
 - Implement augmentation
