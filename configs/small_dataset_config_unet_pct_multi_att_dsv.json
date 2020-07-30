@@ -28,7 +28,7 @@
     "seed": 42
   },
   "data_path": {
-    "gsd_pCT": "/home/klug/working_data/perfusion_maps/small_rescaled_data_set.npz"
+   "gsd_pCT": "/home/klug/working_data/perfusion_maps/small_rescaled_data_set.npz"
   },
   "data_opts":{
     "channels": [0]
@@ -54,6 +54,7 @@
     "which_epoch": -1,
     "model_type": "unet_pct_multi_att_dsv",
     "tensor_dim": "3D",
+    "optim": "SGD",
     "division_factor": 16,
     "input_nc": 1,
     "output_nc": 2,
@@ -63,8 +64,8 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "early_stopping",
-    "criterion": "dice_loss"
+    "experiment_name": "temp",
+    "criterion": "combined_loss"
   }
 }
 

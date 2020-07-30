@@ -37,9 +37,17 @@ def get_criterion(opts):
     elif opts.criterion == 'dice_loss':
         criterion = SoftDiceLoss(opts.output_nc)
     elif opts.criterion == 'dice_loss_specific_classes_only':
-        criterion = CustomSoftDiceLoss(opts.output_nc, class_ids=[0, 2])
+        criterion = CustomSoftDiceLoss(opts.output_nc, class_ids=[1])
     elif opts.criterion == 'focal_tversky_loss':
         criterion = FocalTverskyLoss()
+    elif opts.criterion == 'weighted_binary_cross_entropy_loss':
+        criterion = WeightedBinaryCrossEntropyLoss(opts.output_nc)
+    elif opts.criterion == 'l1_loss':
+        criterion = L1Loss(opts.output_nc)
+    elif opts.criterion == 'volume_loss':
+        criterion = VolumeLoss(opts.output_nc)
+    elif opts.criterion == 'combined_loss':
+        criterion = CombinedLoss(opts.output_nc)
 
     return criterion
 

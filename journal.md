@@ -24,7 +24,7 @@ ie. the unet can now also output a single binary channel
 - Unet is correctly implemented
 - Multi-channel prediction remains superior in terms of convergence  
 
-## Focal Tversky loss
+##  Focal Tversky loss
 
 |Start Date|End Date  |
 |----------|----------|

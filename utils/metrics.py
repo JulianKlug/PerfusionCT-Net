@@ -46,6 +46,8 @@ def dice_score_list(label_gt, label_pred, n_class):
     :param n_class: number of label classes
     :return:
     """
+    print('----------------', np.unique(label_gt[0]), np.unique(label_pred[0]))
+    print('----------------', label_gt[0].shape, label_pred[0].shape)
     epsilon = 1.0e-6
     assert len(label_gt) == len(label_pred)
     batchSize = len(label_gt)
