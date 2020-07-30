@@ -116,6 +116,29 @@ Evaluated weight decay to reduce overfitting.
 - Weight decay should be integrated in a future grid search
 
 
+##  Combined loss
+
+|Start Date|End Date  |
+|----------|----------|
+|2020-07-17|2020-07-31|
+
+Inspired by the [work by Yu et al](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2762679), we evaluated a combined loss defined as follows:
+
+Combined loss: `Loss = Weighted binary cross entropy + L1 loss + 0.5×(1 – DSC) + 0.25×Volume loss`
+
+|Loss|Loss Evolution|Dice over time| Best validation dice | Best validation epoch |
+|----------|----------|----------|----------|----------|
+|Dice loss|![Dice-Loss](./static/journal/combined_loss_evaluation/loss_dice_loss.png "Dice-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_dice_loss.png "Dice over time with Dice as loss")| 0.222637893 | 186 |
+|L1 loss|![L1-Loss](./static/journal/combined_loss_evaluation/loss_l1.png "L1-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_l1.png "Dice over time with L1 as loss")| 0.005964876 | 14 |
+|WBCE loss|![WBCE-Loss](./static/journal/combined_loss_evaluation/loss_wbce.png "WBCE-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_wbce.png "Dice over time with WBCE as loss")| 0.127579561 | 172 |
+|Volume + Dice loss|![Volume-Dice-Loss](./static/journal/combined_loss_evaluation/loss_volume_and_dice.png "Volume Error + Dice-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_volume_and_dice.png "Dice over time with Volume Error + Dice as loss")| 0.210912979 | 176 |
+|Combined Loss|![Combined-Loss](./static/journal/combined_loss_evaluation/loss_combined_loss.png "Combined Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_combined_loss.png "Dice over time with combined loss")| 0.20187068 | 106 |
+
+### Conclusion
+
+- combined loss seems to converge slightly faster
+- combined loss yields worse results than dice loss alone
+
 # TODO
 
 - Implement augmentation
