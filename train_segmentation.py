@@ -117,16 +117,16 @@ def train(arguments):
         visualizer.save_plots(epoch, save_frequency=5)
         error_logger.reset()
 
-        if early_stopper.interrogate(epoch):
-            break
-
         # Save the model parameters
         if not early_stopper.is_improving is False:
             model.save(json_opts.model.model_type, epoch)
             save_config(json_opts, json_filename, model, epoch)
 
         # Update the model learning rate
-        model.update_learning_rate()
+        model.update_learning_rate(metric=early_stopper.get_current_validation_loss())
+
+        if early_stopper.interrogate(epoch):
+            break
 
 
 if __name__ == '__main__':

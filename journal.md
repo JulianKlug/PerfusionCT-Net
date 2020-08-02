@@ -24,7 +24,7 @@ ie. the unet can now also output a single binary channel
 - Unet is correctly implemented
 - Multi-channel prediction remains superior in terms of convergence  
 
-## Focal Tversky loss
+##  Focal Tversky loss
 
 |Start Date|End Date  |
 |----------|----------|
@@ -115,6 +115,58 @@ Evaluated weight decay to reduce overfitting.
 - At lambda 10<sup>-1</sup>, weight decay begins to hurt performance
 - Weight decay should be integrated in a future grid search
 
+
+##  Combined loss
+
+|Start Date|End Date  |
+|----------|----------|
+|2020-07-17|2020-07-31|
+
+Inspired by the [work by Yu et al](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2762679), we evaluated a combined loss defined as follows:
+`Loss = Weighted binary cross entropy + L1 loss + 0.5×(1 – DSC) + 0.25×Volume loss`
+
+### Losses
+
+Class wise implementations:
+- Single class: Computed only for Stroke presence
+- Multi class: mean computed for all classes (thus stroke presence and absence)
+
+#### *Weighted binary cross-entropy loss* 
+![WBCE-Loss](./static/journal/formulas/wbce_loss.png "WBCE Loss") <br>
+![R0 weight](./static/journal/formulas/R0_weight.png "R0 weight")
+![R1 weight](./static/journal/formulas/R1_weight.png "R1 weight")
+
+#### *Volume loss* 
+![Volume-Loss](./static/journal/formulas/volume_loss.png "Volume Loss")
+- Volume loss is not differentiable (as max/threshold is not differentiable) and has thus to be combined with another loss. 
+- Single class volume loss high spikes are due to augmented train volumes with no lesion visible
+
+#### *L1 loss* 
+![L1-Loss](./static/journal/formulas/l1_loss.png "L1 Loss")
+
+#### *Tversky and focal tversky loss* 
+
+Original work by [Salehi et al](https://arxiv.org/abs/1706.05721) and [Abraham et al.](https://arxiv.org/abs/1810.07842v1)
+
+![Tversky-Loss](./static/journal/formulas/tversky_loss.png "Tversky Loss") <br>
+![Focal Tversky-Loss](./static/journal/formulas/focal_tversky_loss.png "Focal Tversky Loss")
+
+|Loss|Loss Evolution|Dice over time| Best validation dice | Best validation epoch |
+|----------|----------|----------|----------|----------|
+|Multi class Dice loss|![Multi class Dice-Loss](./static/journal/combined_loss_evaluation/loss_dice_loss.png "Dice-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_dice_loss.png "Dice over time with multi class Dice as loss")| 0.222637893 | 186 |
+|Single class Dice loss|![Single class Dice-Loss](./static/journal/combined_loss_evaluation/loss_single_class_dice.png "Single class Dice-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_single_class_dice.png "Dice over time with single class Dice as loss")| 0.213009384 | 301 |
+|L1 loss|![L1-Loss](./static/journal/combined_loss_evaluation/loss_l1.png "L1-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_l1.png "Dice over time with L1 as loss")| 0.005964876 | 14 |
+|WBCE loss|![WBCE-Loss](./static/journal/combined_loss_evaluation/loss_wbce.png "WBCE-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_wbce.png "Dice over time with WBCE as loss")| 0.127579561 | 172 |
+|Single class Volume + Dice loss|![Volume-Dice-Loss](./static/journal/combined_loss_evaluation/loss_volume_and_dice.png "Volume Error + Dice-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_volume_and_dice.png "Dice over time with Volume Error + Dice as loss")| 0.210912979 | 176 |
+|Combined Loss|![Combined-Loss](./static/journal/combined_loss_evaluation/loss_combined_loss.png "Combined Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_combined_loss.png "Dice over time with combined loss")| 0.20187068 | 106 |
+|Multi class Volume + Dice loss|![Multi-class-Volume-Dice-Loss](./static/journal/combined_loss_evaluation/loss_multi_class_volume_and_dice.png "Multi Class Volume + Dice-Loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_multi_class_volume_and_dice.png "Dice over time with multi class volume + dice as loss")| 0.207735219 | 182 |
+|Multi class focal tversky loss|![Multi-class-focal-tversky-Loss](./static/journal/combined_loss_evaluation/loss_multi_class_ftl.png "Multi Class Focal Tversky loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_multi_class_ftl.png "Dice over time with multi class focal tversky as loss")| 0.209134249 | 251 |
+|Single class focal tversky loss|![Single-class-focal-tversky-Loss](./static/journal/combined_loss_evaluation/loss_single_class_ftl.png "Single Class Focal Tversky loss over time") | ![Dice Score](./static/journal/combined_loss_evaluation/dice_single_class_ftl.png "Dice over time with single class focal tversky as loss")| 0.225328473 | 201 |
+
+### Conclusion
+
+- combined loss with single class volume loss seems to converge slightly faster
+- combined loss yields worse results than dice loss alone on validation, with probably smaller std 
 
 # TODO
 

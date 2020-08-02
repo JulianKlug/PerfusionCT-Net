@@ -26,6 +26,9 @@ def cross_entropy_3D(input, target, weight=None, size_average=True):
 
 
 class SoftDiceLoss(nn.Module):
+    """
+       Computes the sum of the dice loss for all classes in input
+    """
     def __init__(self, n_classes):
         super(SoftDiceLoss, self).__init__()
         self.one_hot_encoder = One_Hot(n_classes).forward
@@ -51,9 +54,12 @@ class SoftDiceLoss(nn.Module):
         return score
 
 
-class CustomSoftDiceLoss(nn.Module):
+class SelectClassSoftDiceLoss(nn.Module):
+    """
+    Computes the sum of the dice loss for every class selected.
+    """
     def __init__(self, n_classes, class_ids):
-        super(CustomSoftDiceLoss, self).__init__()
+        super(SelectClassSoftDiceLoss, self).__init__()
         self.one_hot_encoder = One_Hot(n_classes).forward
         self.n_classes = n_classes
         self.class_ids = class_ids
@@ -62,15 +68,19 @@ class CustomSoftDiceLoss(nn.Module):
         smooth = 0.01
         batch_size = input.size(0)
 
-        input = F.softmax(input[:,self.class_ids], dim=1).view(batch_size, len(self.class_ids), -1)
-        target = self.one_hot_encoder(target).contiguous().view(batch_size, self.n_classes, -1)
-        target = target[:, self.class_ids, :]
+        if len(self.class_ids) == 1:
+            input = F.sigmoid(input[:, self.class_ids]).view(batch_size, 1, -1)
+            target = target.contiguous().view(batch_size, 1, -1).float()
+        else:
+            input = F.softmax(input[:,self.class_ids], dim=1).view(batch_size, len(self.class_ids), -1)
+            target = self.one_hot_encoder(target).contiguous().view(batch_size, self.n_classes, -1)
+            target = target[:, self.class_ids, :]
 
         inter = torch.sum(input * target, 2) + smooth
         union = torch.sum(input, 2) + torch.sum(target, 2) + smooth
 
         score = torch.sum(2.0 * inter / union)
-        score = 1.0 - score / (float(batch_size) * float(self.n_classes))
+        score = 1.0 - score / (float(batch_size) * float(len(self.class_ids)))
 
         return score
 
@@ -97,14 +107,11 @@ def tversky_loss(true, logits, alpha, beta, eps=1e-7):
     batch_size = logits.shape[0]
 
     if len(logits.shape) > 4: # 3D
-        one_hot_encoder = One_Hot(num_classes).forward
-        true_1_hot = one_hot_encoder(true)
         if num_classes == 1:
-            pos_prob = torch.sigmoid(logits)
-            neg_prob = 1 - pos_prob
-            probas = torch.cat([pos_prob, neg_prob], dim=1)
+            probas = torch.sigmoid(logits).view(batch_size, num_classes, -1)
+            true_1_hot = true.contiguous().view(batch_size, num_classes, -1)
         else:
-            # probas = F.softmax(logits, dim=1)
+            one_hot_encoder = One_Hot(num_classes).forward
             probas = F.softmax(logits, dim=1).view(batch_size, num_classes, -1)
             true_1_hot = one_hot_encoder(true).contiguous().view(batch_size, num_classes, -1)
         dims = 2
@@ -138,15 +145,20 @@ def tversky_loss(true, logits, alpha, beta, eps=1e-7):
 class FocalTverskyLoss(nn.Module):
     # Goal: better segmentation loss for small spots
     # from https://arxiv.org/pdf/1810.07842.pdf
-    def __init__(self, weight=None):
+    def __init__(self, class_ids=None):
         super(FocalTverskyLoss, self).__init__()
         # Tversky loss variables
         self.alpha = 0.3
         self.beta = 0.7
         # focal TL vars
         self.gamma = 0.75
+        self.class_ids = class_ids
 
     def forward(self, logits, targets):
+        if self.class_ids is not None:
+            logits = logits[:, self.class_ids]
+            if len(self.class_ids) == 1:
+                logits = logits.unsqueeze(1)
         tl = tversky_loss(targets, logits, self.alpha, self.beta, eps=1e-7)
         return torch.pow(tl, self.gamma)
 
@@ -169,12 +181,97 @@ class One_Hot(nn.Module):
         return self.__class__.__name__ + "({})".format(self.depth)
 
 
-if __name__ == '__main__':
-    depth=3
-    batch_size=2
-    encoder = One_Hot(depth=depth).forward
-    y = Variable(torch.LongTensor(batch_size, 1, 1, 2 ,2).random_() % depth).cuda()  # 4 classes,1x3x3 img
-    y_onehot = encoder(y)
-    x = Variable(torch.randn(y_onehot.size()).float()).cuda()
-    dicemetric = SoftDiceLoss(n_classes=depth)
-    dicemetric(x,y)
+class WeightedBinaryCrossEntropyLoss(nn.Module):
+    def __init__(self, n_classes):
+        super(WeightedBinaryCrossEntropyLoss, self).__init__()
+        self.one_hot_encoder = One_Hot(n_classes).forward
+        self.n_classes = n_classes
+
+    def forward(self, input, target):
+        epsilon = 1e-6
+        batch_size = input.size(0)
+
+        if self.n_classes == 1:
+            input = torch.sigmoid(input).view(batch_size, self.n_classes, -1)
+            target = target.contiguous().view(batch_size, self.n_classes, -1).float()
+        else:
+            input = F.softmax(input, dim=1).view(batch_size, self.n_classes, -1)
+            target = self.one_hot_encoder(target).contiguous().view(batch_size, self.n_classes, -1)
+
+        input_f = input.flatten()
+        target_f = target.flatten()
+        pos_sample = target_f.sum()
+        neg_sample = target_f.numel() - pos_sample
+        ratio = neg_sample / pos_sample
+        ratio_one = ratio / (ratio + 1)
+        ratio_zero = 1 / (ratio + 1)
+        loss = -2 * torch.mean(ratio_one * target_f * torch.log(input_f + epsilon)
+                             + ratio_zero * (1 - target_f) * torch.log(1 - input_f + epsilon))
+
+        return loss
+
+
+class VolumeError(nn.Module):
+    def __init__(self, n_classes, classId = 1):
+        super(VolumeError, self).__init__()
+        self.one_hot_encoder = One_Hot(n_classes).forward
+        self.n_classes = n_classes
+        self.classId = classId
+
+    def forward(self, input, target):
+        if self.n_classes == 1:
+            input = torch.sigmoid(input)
+        else:
+            input = F.softmax(input, dim=1)
+            target = self.one_hot_encoder(target)
+
+        target_f = target.flatten()
+        input_seg_f = (input.flatten() > 0.5).float()
+        weight = 1 / (target_f.sum() + 1)
+        difference = torch.abs(input_seg_f.sum() - target_f.sum()) * weight / 4
+        return difference
+
+
+class L1Loss(nn.Module):
+    def __init__(self, n_classes):
+        super(L1Loss, self).__init__()
+        self.one_hot_encoder = One_Hot(n_classes).forward
+        self.n_classes = n_classes
+
+    def forward(self, input, target):
+        loss = nn.L1Loss()
+        batch_size = input.size(0)
+
+        # Prepare for L1 loss
+        if self.n_classes == 1:
+            loss_input = torch.sigmoid(input).view(batch_size, self.n_classes, -1)
+            loss_target = target.contiguous().view(batch_size, self.n_classes, -1).float()
+        else:
+            loss_input = F.softmax(input, dim=1).view(batch_size, self.n_classes, -1)
+            loss_target = self.one_hot_encoder(target).contiguous().view(batch_size, self.n_classes, -1)
+
+        # Calculate L1 loss
+        return loss(loss_input, loss_target)
+
+class CombinedLoss(nn.Module):
+    def __init__(self, n_classes, class_id=None):
+        super(CombinedLoss, self).__init__()
+        self.class_id = class_id
+        if self.class_id is None:
+            self.n_classes = n_classes
+        else:
+            self.n_classes = 1
+
+    def forward(self, input, target):
+        dice_loss = SoftDiceLoss(self.n_classes)
+        volume_error = VolumeError(self.n_classes)
+        wbce_loss = WeightedBinaryCrossEntropyLoss(self.n_classes)
+        l1_loss = L1Loss(self.n_classes)
+
+        # restrict loss to a single class
+        if self.class_id is not None:
+            input = input[:, self.class_id]
+
+        combined_loss = 0.5 * dice_loss(input, target) + volume_error(input, target) + wbce_loss(input, target) + l1_loss(input, target)
+
+        return combined_loss

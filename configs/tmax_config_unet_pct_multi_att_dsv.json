@@ -7,8 +7,8 @@
     "batchSize": 2,
     "preloadData": true,
     "early_stopping":{
-      "patience": 10,
-      "min_epochs": 100,
+      "patience": 25,
+      "min_epochs": 300,
       "monitor": "Seg_Loss"
     },
     "verbose": "True"
@@ -52,6 +52,7 @@
     "which_epoch": -1,
     "model_type": "unet_pct_multi_att_dsv",
     "tensor_dim": "3D",
+    "optim": "sgd",
     "division_factor": 16,
     "input_nc": 1,
     "output_nc": 2,
@@ -61,8 +62,9 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "fix_early_stopping",
-    "criterion": "dice_loss"
+    "experiment_name": "single_class_focal_tversky_loss_tmax",
+    "criterion": "focal_tversky_loss",
+    "loss_class_idx": [1]
   }
 }
 

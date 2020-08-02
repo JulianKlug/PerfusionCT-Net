@@ -107,7 +107,7 @@ class Transformations:
                                  max_output_channels=self.max_output_channels, prudent=self.prudent),
             # Todo eventually add random crop augmentation (fork torchsample and fix the Random Crop bug)
             ts.ChannelsFirst(),
-            ts.TypeCast(['float', 'long'])
+            ts.TypeCast(['float', 'float'])
         ])
 
         return train_transform
@@ -119,7 +119,7 @@ class Transformations:
             ts.TypeCast(['float', 'float']),
             StandardizeImage(norm_flag=[True, True, True, False]),
             ts.ChannelsFirst(),
-            ts.TypeCast(['float', 'long'])
+            ts.TypeCast(['float', 'float'])
         ])
 
         return valid_transform
