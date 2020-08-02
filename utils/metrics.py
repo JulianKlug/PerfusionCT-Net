@@ -40,9 +40,8 @@ def segmentation_scores(label_trues, label_preds, n_class):
 
 def dice_score_list(label_gt, label_pred, n_class):
     """
-
-    :param label_gt: [WxH] (2D images)
-    :param label_pred: [WxH] (2D images)
+    :param label_gt: [WxHxD] (3D images)
+    :param label_pred: [WxHxD] (3D images)
     :param n_class: number of label classes
     :return:
     """
@@ -62,13 +61,11 @@ def dice_score_list(label_gt, label_pred, n_class):
 
 def dice_score(label_gt, label_pred, n_class):
     """
-
     :param label_gt:
     :param label_pred:
     :param n_class:
     :return:
     """
-
     epsilon = 1.0e-6
     assert np.all(label_gt.shape == label_pred.shape)
     dice_scores = np.zeros(n_class, dtype=np.float32)
@@ -91,12 +88,12 @@ def roc_auc(label_gt, label_pred):
 
 
 def single_class_dice_score(target, input):
-    smooth = 1e-7
+    smooth = 1.0e-6
     iflat = np.array(input).flatten()
     tflat = np.array(target).flatten()
     intersection = (iflat * tflat).sum()
 
-    return ((2. * intersection + smooth) /
+    return ((2. * intersection) /
             (iflat.sum() + tflat.sum() + smooth))
 
 

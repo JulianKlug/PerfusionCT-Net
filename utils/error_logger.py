@@ -3,7 +3,7 @@ from .utils import csv_write
 
 
 class BaseMeter(object):
-    """Just a place holderb"""
+    """Just a place holder"""
 
     def __init__(self, name):
         self.reset()
@@ -17,7 +17,6 @@ class BaseMeter(object):
 
     def get_value(self):
         return self.val
-
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -52,15 +51,15 @@ class StatMeter(object):
         self.vals = []
         self.img_names = []
 
-    def update(self, val, img_name):
+    def update(self, val, img_name=None):
         self.vals.append(val)
         self.img_names.append(img_name)
 
-    def return_average(self):
+    def get_average(self):
         values_array = np.array(self.vals, dtype=np.float)
         return np.nanmean(values_array)
 
-    def return_std(self):
+    def get_std(self):
         values_array = np.array(self.vals, dtype=np.float)
         return np.nanstd(values_array)
 
@@ -78,7 +77,7 @@ class ErrorLogger(object):
         for key, value in input_dict.items():
             if key not in self.variables[split]:
                 if np.isscalar(value):
-                    self.variables[split][key] = AverageMeter(name=key)
+                    self.variables[split][key] = StatMeter(name=key)
                 else:
                     self.variables[split][key] = BaseMeter(name=key)
 
@@ -87,8 +86,10 @@ class ErrorLogger(object):
 
     def get_errors(self, split):
         output = dict()
-        for key, meter_obj in self.variables[split].items():
-            output[key] = meter_obj.get_value()
+        for key, stat_meter_obj in self.variables[split].items():
+            output[key] = stat_meter_obj.get_average()
+            # batch wise standard deviation
+            output[key + '_bstd'] = stat_meter_obj.get_std()
         return output
 
     def reset(self):
@@ -118,7 +119,7 @@ class StatLogger(object):
     def get_errors(self, split):
         output = dict()
         for key, meter_obj in self.variables[split].items():
-            output[key] = (meter_obj.return_average(), meter_obj.return_std())
+            output[key] = (meter_obj.get_average(), meter_obj.get_std())
         return output
 
     def statlogger2csv(self, split, out_csv_name):

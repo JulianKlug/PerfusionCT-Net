@@ -62,7 +62,7 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "single_class_focal_tversky_loss_tmax",
+    "experiment_name": "temp",
     "criterion": "focal_tversky_loss",
     "loss_class_idx": [1]
   }
