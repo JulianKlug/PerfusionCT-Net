@@ -65,7 +65,8 @@
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
     "experiment_name": "temp",
-    "criterion": "combined_loss"
+    "criterion": "focal_tversky_loss",
+    "loss_class_idx": [1]
   }
 }
 

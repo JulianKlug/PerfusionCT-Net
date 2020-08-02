@@ -79,7 +79,6 @@ class FeedForwardSegmentation(BaseModel):
     def forward(self, split):
         if split == 'train':
             self.prediction = self.net(Variable(self.input))
-            print(self.prediction.shape)
             self.pred_seg = None
         elif split == 'test':
             with torch.no_grad():
@@ -88,7 +87,6 @@ class FeedForwardSegmentation(BaseModel):
                 if self.prediction.shape[1] > 1: # multiclass
                     self.logits = self.net.apply_argmax_softmax(self.prediction, dim=1)
                     self.pred_seg = self.logits.data.max(1)[1].unsqueeze(1) # give each voxel the class index with max proba
-                    print('yiiiiiieeeeeeeeeeee', self.prediction.shape, self.logits.shape, self.pred_seg.shape)
                 else:
                     self.logits = self.net.apply_argmax_softmax(self.prediction, dim=None)
                     self.pred_seg = (self.logits > 0.5).float()

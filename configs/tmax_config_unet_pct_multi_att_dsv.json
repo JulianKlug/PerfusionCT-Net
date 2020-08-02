@@ -7,8 +7,8 @@
     "batchSize": 2,
     "preloadData": true,
     "early_stopping":{
-      "patience": 10,
-      "min_epochs": 100,
+      "patience": 25,
+      "min_epochs": 300,
       "monitor": "Seg_Loss"
     },
     "verbose": "True"
@@ -62,8 +62,9 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "combi_loss_tmax_test",
-    "criterion": "combined_loss"
+    "experiment_name": "single_class_focal_tversky_loss_tmax",
+    "criterion": "focal_tversky_loss",
+    "loss_class_idx": [1]
   }
 }
 
