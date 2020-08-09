@@ -32,6 +32,15 @@ def get_network(name, n_classes, in_channels=3, feature_scale=4, tensor_dim='2D'
                       feature_scale=feature_scale,
                       attention_dsample=attention_dsample,
                       is_deconv=False)
+    elif name in ['unet_pCT_bayesian_multi_att_dsv_3D']:
+        model = model(n_classes=n_classes,
+                      is_batchnorm=True,
+                      in_channels=in_channels,
+                      prior_channel = prior_channel,
+                      nonlocal_mode=nonlocal_mode,
+                      feature_scale=feature_scale,
+                      attention_dsample=attention_dsample,
+                      is_deconv=False)
     else:
         raise 'Model {} not available'.format(name)
 
@@ -43,5 +52,6 @@ def _get_model_instance(name, tensor_dim):
         'unet':{'2D': unet_2D, '3D': unet_3D},
         'unet_nonlocal':{'2D': unet_nonlocal_2D, '3D': unet_nonlocal_3D},
         'unet_grid_gating': {'3D': unet_grid_attention_3D},
-        'unet_pct_multi_att_dsv': {'3D': unet_pCT_multi_att_dsv_3D}
+        'unet_pct_multi_att_dsv': {'3D': unet_pCT_multi_att_dsv_3D},
+        'unet_pct_bayesian_multi_att_dsv': {'3D': unet_pCT_bayesian_multi_att_dsv_3D}
     }[name][tensor_dim]
