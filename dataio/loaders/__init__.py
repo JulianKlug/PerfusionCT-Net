@@ -1,4 +1,5 @@
 from dataio.loaders.geneva_stroke_dataset_pCT import GenevaStrokeDataset_pCT
+from dataio.loaders.geneva_stroke_dataset_25D_pCT import GenevaStrokeDataset_25D_pCT
 
 def get_dataset(name):
     """get_dataset
@@ -6,7 +7,8 @@ def get_dataset(name):
     :param name:
     """
     return {
-        'gsd_pCT': GenevaStrokeDataset_pCT
+        'gsd_pCT': GenevaStrokeDataset_pCT,
+        'gsd_pCT_25D': GenevaStrokeDataset_25D_pCT
     }[name]
 
 

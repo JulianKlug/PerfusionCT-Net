@@ -86,6 +86,24 @@ def roc_auc(label_gt, label_pred):
     roc_auc_score = auc(fpr, tpr)
     return roc_auc_score
 
+def subject_wise_single_class_dice_score(target, input, n_subjects):
+    """ Subject wise mean dice if only a single class is present
+    Note: mean of means is only equal to overall mean if all subsets are of the same size
+    (this should be the case as it is fixed by batch size)
+    """
+    _, n_x, n_y, _ = np.array(target).shape
+    subject_wise_target = np.array(target).reshape(n_subjects, n_x, n_y, -1)
+    subject_wise_input = np.array(input).reshape(n_subjects, n_x, n_y, -1)
+    subject_wise_dice = []
+    for subj in range(n_subjects):
+        if subject_wise_target[subj].sum() == 0 and subject_wise_input[subj].sum() == 0:
+            dice_score = 1
+        else:
+            dice_score = single_class_dice_score(subject_wise_target[subj], subject_wise_input[subj])
+        subject_wise_dice.append(dice_score)
+
+    print('Subject wise dice', subject_wise_dice)
+    return np.mean(subject_wise_dice)
 
 def single_class_dice_score(target, input):
     smooth = 1.0e-6

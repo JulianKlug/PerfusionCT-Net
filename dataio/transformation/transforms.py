@@ -80,7 +80,8 @@ class Transformations:
         :return:
         '''
         return {
-            'gsd_pCT': {'train': self.gsd_pCT_train_transform, 'valid': self.gsd_pCT_valid_transform}
+            'gsd_pCT': {'train': self.gsd_pCT_train_transform, 'valid': self.gsd_pCT_valid_transform},
+            'gsd_pCT_25D': {'train': self.gsd_pCT_train_transform, 'valid': self.gsd_pCT_valid_transform}
         }[self.name]
 
     def gsd_pCT_train_transform(self, seed=None):

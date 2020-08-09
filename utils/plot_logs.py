@@ -20,7 +20,7 @@ def plot_logs(log_file, split_names=None, save_dir=None, single_metric=None):
     if single_metric is not None:
         n_cols = 1
         n_rows = 1
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(10, 10))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(12, 12))
     for index, metric in enumerate(metrics):
         if metric == 'epoch': continue
         if single_metric is not None:
