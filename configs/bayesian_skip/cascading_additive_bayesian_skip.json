@@ -31,7 +31,7 @@
     "gsd_pCT": "/home/klug/working_data/perfusion_maps/rescaled_with_ncct_dataset_with_one_hot_encoded_core.npz"
   },
   "data_opts":{
-    "channels": [0, 1, 2, 3, 4 , 5]
+    "channels": [0, 1, 2, 3, 4 , 5, 6]
   },
   "augmentation": {
     "gsd_pCT": {
@@ -57,7 +57,7 @@
     "division_factor": 16,
     "input_nc": 6,
     "output_nc": 2,
-    "prior_information_channels": [5],
+    "prior_information_channels": [5, 6],
     "bayesian_skip_type": "add",
     "lr_rate": 1e-4,
     "l2_reg_weight": 1e-6,
