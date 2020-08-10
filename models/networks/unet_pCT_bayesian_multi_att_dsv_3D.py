@@ -9,19 +9,27 @@ from models.layers.grid_attention_layer import GridAttentionBlock3D
 class unet_pCT_bayesian_multi_att_dsv_3D(nn.Module):
 
     def __init__(self, feature_scale=4, n_classes=2, is_deconv=True, in_channels=4, prior_information_channels=0,
-                 nonlocal_mode='concatenation', attention_dsample=(2,2,2), is_batchnorm=True, conv_bloc_type=None):
+                 nonlocal_mode='concatenation', attention_dsample=(2,2,2), is_batchnorm=True, conv_bloc_type=None,
+                 bayesian_skip_type='conv'):
         super(unet_pCT_bayesian_multi_att_dsv_3D, self).__init__()
         self.is_deconv = is_deconv
         self.in_channels = in_channels
         self.is_batchnorm = is_batchnorm
         self.feature_scale = feature_scale
         self.prior_information_channels = prior_information_channels
+        self.bayesian_skip_type = bayesian_skip_type
         conv_bloc_class = UnetConv3
         if conv_bloc_type is not None:
             if conv_bloc_type == 'classic':
                 conv_bloc_class = UnetConv3
             if conv_bloc_type == 'residual':
                 conv_bloc_class = ResidualBlock3d
+
+        if self.bayesian_skip_type not in ['conv', 'add']:
+            raise NotImplementedError(f'{self.bayesian_skip_type} is not implemented, use one of [\'conv\', \'add\']')
+        if self.bayesian_skip_type == 'add':
+            assert len(self.prior_information_channels) == n_classes, \
+                'Prior information needs to have the same number of channels als final output. Maybe one hot encode it?'
 
         filters = [64, 128, 256, 512, 1024]
         filters = [int(x / self.feature_scale) for x in filters]
@@ -65,8 +73,9 @@ class unet_pCT_bayesian_multi_att_dsv_3D(nn.Module):
         # final conv (without any concat)
         self.final = nn.Conv3d(n_classes*4, n_classes, 1)
 
-        # let prior information skip whole network and integrate it here
-        self.final_bayesian_skip = nn.Conv3d(n_classes + len(self.prior_information_channels), n_classes, 1)
+        if self.bayesian_skip_type == 'conv':
+            # let prior information skip whole network and integrate it here
+            self.final_bayesian_skip = nn.Conv3d(n_classes + len(self.prior_information_channels), n_classes, 1)
 
         # initialise weights
         for m in self.modules():
@@ -111,9 +120,14 @@ class unet_pCT_bayesian_multi_att_dsv_3D(nn.Module):
         final = self.final(torch.cat([dsv1,dsv2,dsv3,dsv4], dim=1))
 
         # Bayesian skip connection
-        final_with_bayesian_skip = self.final_bayesian_skip(
-            torch.cat([inputs[:, self.prior_information_channels], final], dim = 1))
-        return final_with_bayesian_skip
+        if self.bayesian_skip_type == 'conv':
+            final_with_bayesian_skip = self.final_bayesian_skip(
+                torch.cat([inputs[:, self.prior_information_channels], final], dim = 1))
+            return final_with_bayesian_skip
+
+        elif self.bayesian_skip_type == 'add':
+            final += inputs[:, self.prior_information_channels]
+            return final
 
 
     @staticmethod

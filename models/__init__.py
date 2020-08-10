@@ -29,6 +29,7 @@ class ModelOpts:
 
         # Prior information channels
         self.prior_information_channels = None
+        self.bayesian_skip_type = 'conv'  # 'conv' or 'add'
 
         # Attention Classifier
         self.aggregation_mode = 'concatenation'
@@ -62,6 +63,7 @@ class ModelOpts:
         if hasattr(opts, 'attention_dsample'): self.attention_dsample = opts.attention_dsample
 
         if hasattr(opts, 'prior_information_channels'): self.prior_information_channels = opts.prior_information_channels
+        if hasattr(opts, 'bayesian_skip_type'): self.bayesian_skip_type = opts.bayesian_skip_type
 
         # Classifier
         if hasattr(opts, 'aggregation_mode'): self.aggregation_mode = opts.aggregation_mode
