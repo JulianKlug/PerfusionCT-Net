@@ -16,6 +16,9 @@ class unet_pCT_additive_bayesian_multi_att_dsv_3D(nn.Module):
         self.is_batchnorm = is_batchnorm
         self.feature_scale = feature_scale
         self.prior_information_channels = prior_information_channels
+
+        assert len(self.prior_information_channels) == n_classes, 'Prior information needs to have the same number of channels als final output. Maybe one hot encode it?'
+
         conv_bloc_class = UnetConv3
         if conv_bloc_type is not None:
             if conv_bloc_type == 'classic':
@@ -111,14 +114,9 @@ class unet_pCT_additive_bayesian_multi_att_dsv_3D(nn.Module):
         final = self.final(torch.cat([dsv1,dsv2,dsv3,dsv4], dim=1))
 
         # Bayesian skip connection
-        additive_bayesian_skip = final
-        # add prior information to hot-encoded output
-        class_0_prior = 1 - inputs[:, self.prior_information_channels]
-        class_1_prior = inputs[:, self.prior_information_channels]
-        one_hot_prior = torch.cat([class_0_prior, class_1_prior], dim=1)
-        additive_bayesian_skip += one_hot_prior
+        final += inputs[:, self.prior_information_channels]
 
-        return additive_bayesian_skip
+        return final
 
     @staticmethod
     def apply_argmax_softmax(pred, dim=1):
