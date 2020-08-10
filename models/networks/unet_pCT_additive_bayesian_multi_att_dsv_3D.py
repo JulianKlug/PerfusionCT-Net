@@ -6,11 +6,11 @@ from models.networks_other import init_weights
 from models.layers.grid_attention_layer import GridAttentionBlock3D
 
 
-class unet_pCT_bayesian_multi_att_dsv_3D(nn.Module):
+class unet_pCT_additive_bayesian_multi_att_dsv_3D(nn.Module):
 
     def __init__(self, feature_scale=4, n_classes=2, is_deconv=True, in_channels=4, prior_information_channels=0,
                  nonlocal_mode='concatenation', attention_dsample=(2,2,2), is_batchnorm=True, conv_bloc_type=None):
-        super(unet_pCT_bayesian_multi_att_dsv_3D, self).__init__()
+        super(unet_pCT_additive_bayesian_multi_att_dsv_3D, self).__init__()
         self.is_deconv = is_deconv
         self.in_channels = in_channels
         self.is_batchnorm = is_batchnorm
@@ -111,10 +111,14 @@ class unet_pCT_bayesian_multi_att_dsv_3D(nn.Module):
         final = self.final(torch.cat([dsv1,dsv2,dsv3,dsv4], dim=1))
 
         # Bayesian skip connection
-        final_with_bayesian_skip = self.final_bayesian_skip(
-            torch.cat([inputs[:, self.prior_information_channels], final], dim = 1))
-        return final_with_bayesian_skip
+        additive_bayesian_skip = final
+        # add prior information to hot-encoded output
+        class_0_prior = 1 - inputs[:, self.prior_information_channels]
+        class_1_prior = inputs[:, self.prior_information_channels]
+        one_hot_prior = torch.cat([class_0_prior, class_1_prior], dim=1)
+        additive_bayesian_skip += one_hot_prior
 
+        return additive_bayesian_skip
 
     @staticmethod
     def apply_argmax_softmax(pred, dim=1):

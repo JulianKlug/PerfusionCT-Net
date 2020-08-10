@@ -17,6 +17,7 @@ class ModelOpts:
         self.l2_reg_weight = 0.0
         self.feature_scale = 4
         self.tensor_dim = '2D'
+        self.conv_bloc_type = 'classic'
         self.path_pre_trained_model = None
         self.criterion = 'cross_entropy'
         self.loss_class_idx = [1]
@@ -25,6 +26,9 @@ class ModelOpts:
         # Attention
         self.nonlocal_mode = 'concatenation'
         self.attention_dsample = (2,2,2)
+
+        # Prior information channels
+        self.prior_information_channels = None
 
         # Attention Classifier
         self.aggregation_mode = 'concatenation'
@@ -48,6 +52,7 @@ class ModelOpts:
         if hasattr(opts, 'lr_rate'):       self.lr_rate = opts.lr_rate
         if hasattr(opts, 'feature_scale'): self.feature_scale = opts.feature_scale
         if hasattr(opts, 'tensor_dim'):    self.tensor_dim = opts.tensor_dim
+        if hasattr(opts, 'conv_bloc_type'):    self.conv_bloc_type = opts.conv_bloc_type
 
         if hasattr(opts, 'path_pre_trained_model'): self.path_pre_trained_model = opts.path_pre_trained_model
         if hasattr(opts, 'criterion'):              self.criterion = opts.criterion
@@ -55,6 +60,9 @@ class ModelOpts:
 
         if hasattr(opts, 'nonlocal_mode'): self.nonlocal_mode = opts.nonlocal_mode
         if hasattr(opts, 'attention_dsample'): self.attention_dsample = opts.attention_dsample
+
+        if hasattr(opts, 'prior_information_channels'): self.prior_information_channels = opts.prior_information_channels
+
         # Classifier
         if hasattr(opts, 'aggregation_mode'): self.aggregation_mode = opts.aggregation_mode
 
