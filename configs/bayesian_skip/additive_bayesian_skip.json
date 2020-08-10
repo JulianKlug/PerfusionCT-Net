@@ -28,7 +28,7 @@
     "seed": 42
   },
   "data_path": {
-    "gsd_pCT": "/home/klug/working_data/perfusion_maps/rescaled_with_ncct_dataset_with_core.npz"
+    "gsd_pCT": "/home/klug/working_data/perfusion_maps/rescaled_with_ncct_dataset_with_one_hot_encoded_core.npz"
   },
   "data_opts":{
     "channels": [0, 1, 2, 3, 4 , 5]
