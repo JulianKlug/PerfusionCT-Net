@@ -59,12 +59,12 @@ class Isles2018TrainingDataset(data.Dataset):
         if self.preload_data:
             print('Preloading the {0} dataset ...'.format(split))
             # select only from data available for this split
-            self.raw_images = np.load(dataset_path, allow_pickle=True)['ct_inputs'][self.split_indices][..., channels].astype(np.int16)
+            self.raw_images = np.load(dataset_path, allow_pickle=True)['ct_inputs'][self.split_indices][..., channels]
 
             try:
-                self.raw_labels = np.load(dataset_path, allow_pickle=True)['ct_lesion_GT'][self.split_indices].astype(np.uint8)
+                self.raw_labels = np.load(dataset_path, allow_pickle=True)['ct_lesion_GT'][self.split_indices]
             except:
-                self.raw_labels = np.load(dataset_path, allow_pickle=True)['lesion_GT'][self.split_indices].astype(np.uint8)
+                self.raw_labels = np.load(dataset_path, allow_pickle=True)['lesion_GT'][self.split_indices]
 
             # Make sure there is a channel dimension
             if self.raw_images.ndim < 5:
