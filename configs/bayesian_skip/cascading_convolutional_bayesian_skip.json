@@ -65,7 +65,7 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "cascading_convolutional_bayesian_skip",
+    "experiment_name": "temp",
     "criterion": "dice_loss"
   }
 }

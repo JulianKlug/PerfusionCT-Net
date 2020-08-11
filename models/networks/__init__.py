@@ -6,6 +6,7 @@ from .unet_grid_attention_3D import *
 from .unet_pCT_multi_att_dsv_3D import *
 from .unet_pCT_bayesian_multi_att_dsv_3D import *
 from .unet_pCT_cascading_bayesian_multi_att_dsv_3D import *
+from .unet_pCT_multi_att_dsv_with_2fconv_3D import *
 
 def get_network(name, n_classes, in_channels=3, feature_scale=4, tensor_dim='2D',
                 nonlocal_mode='embedded_gaussian', attention_dsample=(2,2,2),
@@ -25,7 +26,7 @@ def get_network(name, n_classes, in_channels=3, feature_scale=4, tensor_dim='2D'
                       is_deconv=False,
                       nonlocal_mode=nonlocal_mode,
                       feature_scale=feature_scale)
-    elif name in ['unet_grid_gating', 'unet_pct_multi_att_dsv']:
+    elif name in ['unet_grid_gating', 'unet_pct_multi_att_dsv', 'unet_pct_multi_att_dsv_with_2fconv']:
         model = model(n_classes=n_classes,
                       is_batchnorm=True,
                       in_channels=in_channels,
@@ -60,5 +61,6 @@ def _get_model_instance(name, tensor_dim):
         'unet_grid_gating': {'3D': unet_grid_attention_3D},
         'unet_pct_multi_att_dsv': {'3D': unet_pCT_multi_att_dsv_3D},
         'unet_pct_bayesian_multi_att_dsv': {'3D': unet_pCT_bayesian_multi_att_dsv_3D},
-        'unet_pct_cascading_bayesian_multi_att_dsv': {'3D': unet_pCT_cascading_bayesian_multi_att_dsv_3D}
+        'unet_pct_cascading_bayesian_multi_att_dsv': {'3D': unet_pCT_cascading_bayesian_multi_att_dsv_3D},
+        'unet_pct_multi_att_dsv_with_2fconv': {'3D': unet_pCT_multi_att_dsv_with_2fconv_3D}
     }[name][tensor_dim]

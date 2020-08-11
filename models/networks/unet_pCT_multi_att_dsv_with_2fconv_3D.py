@@ -1,58 +1,38 @@
 import torch.nn as nn
 import torch
-from .utils import UnetConv3, UnetUp3_CT, UnetGridGatingSignal3, UnetDsv3, ResidualBlock3d
+from .utils import UnetConv3, UnetUp3_CT, UnetGridGatingSignal3, UnetDsv3
 import torch.nn.functional as F
-from torchvision.transforms import Resize
 from models.networks_other import init_weights
 from models.layers.grid_attention_layer import GridAttentionBlock3D
 
 
-class unet_pCT_cascading_bayesian_multi_att_dsv_3D(nn.Module):
+class unet_pCT_multi_att_dsv_with_2fconv_3D(nn.Module):
 
-    def __init__(self, feature_scale=4, n_classes=2, is_deconv=True, in_channels=4, prior_information_channels=0,
-                 nonlocal_mode='concatenation', attention_dsample=(2,2,2), is_batchnorm=True, conv_bloc_type=None,
-                 bayesian_skip_type='conv'):
-        super(unet_pCT_cascading_bayesian_multi_att_dsv_3D, self).__init__()
+    def __init__(self, feature_scale=4, n_classes=2, is_deconv=True, in_channels=4,
+                 nonlocal_mode='concatenation', attention_dsample=(2,2,2), is_batchnorm=True):
+        super(unet_pCT_multi_att_dsv_with_2fconv_3D, self).__init__()
         self.is_deconv = is_deconv
         self.in_channels = in_channels
         self.is_batchnorm = is_batchnorm
         self.feature_scale = feature_scale
-        self.prior_information_channels = prior_information_channels
-        self.bayesian_skip_type = bayesian_skip_type
-        conv_bloc_class = UnetConv3
-        if conv_bloc_type is not None:
-            if conv_bloc_type == 'classic':
-                conv_bloc_class = UnetConv3
-            if conv_bloc_type == 'residual':
-                conv_bloc_class = ResidualBlock3d
-
-        if self.bayesian_skip_type not in ['conv', 'add']:
-            raise NotImplementedError(f'{self.bayesian_skip_type} is not implemented, use one of [\'conv\', \'add\']')
-        if self.bayesian_skip_type == 'add':
-            assert len(self.prior_information_channels) == n_classes, \
-                'Prior information needs to have the same number of channels als final output. Maybe one hot encode it?'
 
         filters = [64, 128, 256, 512, 1024]
         filters = [int(x / self.feature_scale) for x in filters]
 
         # downsampling
-        self.conv1 = conv_bloc_class(self.in_channels, filters[0], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
+        self.conv1 = UnetConv3(self.in_channels, filters[0], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
         self.maxpool1 = nn.MaxPool3d(kernel_size=(2, 2, 2))
-        self.prior_resize1 = nn.Upsample(scale_factor=0.5)
 
-        self.conv2 = conv_bloc_class(filters[0] + len(self.prior_information_channels), filters[1], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
+        self.conv2 = UnetConv3(filters[0], filters[1], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
         self.maxpool2 = nn.MaxPool3d(kernel_size=(2, 2, 2))
-        self.prior_resize2 = nn.Upsample(scale_factor=0.5)
 
-        self.conv3 = conv_bloc_class(filters[1] + len(self.prior_information_channels), filters[2], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
+        self.conv3 = UnetConv3(filters[1], filters[2], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
         self.maxpool3 = nn.MaxPool3d(kernel_size=(2, 2, 2))
-        self.prior_resize3 = nn.Upsample(scale_factor=0.5)
 
-        self.conv4 = conv_bloc_class(filters[2] + len(self.prior_information_channels), filters[3], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
+        self.conv4 = UnetConv3(filters[2], filters[3], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
         self.maxpool4 = nn.MaxPool3d(kernel_size=(2, 2, 2))
-        self.prior_resize4 = nn.Upsample(scale_factor=0.5)
 
-        self.center = conv_bloc_class(filters[3] + len(self.prior_information_channels), filters[4], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
+        self.center = UnetConv3(filters[3], filters[4], self.is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
         self.gating = UnetGridGatingSignal3(filters[4], filters[4], kernel_size=(1, 1, 1), is_batchnorm=self.is_batchnorm)
 
         # attention blocks
@@ -64,10 +44,10 @@ class unet_pCT_cascading_bayesian_multi_att_dsv_3D(nn.Module):
                                                    nonlocal_mode=nonlocal_mode, sub_sample_factor= attention_dsample)
 
         # upsampling
-        self.up_concat4 = UnetUp3_CT(filters[4] + len(self.prior_information_channels), filters[3], is_batchnorm, conv_bloc_class=conv_bloc_class)
-        self.up_concat3 = UnetUp3_CT(filters[3] + len(self.prior_information_channels), filters[2], is_batchnorm, conv_bloc_class=conv_bloc_class)
-        self.up_concat2 = UnetUp3_CT(filters[2] + len(self.prior_information_channels), filters[1], is_batchnorm, conv_bloc_class=conv_bloc_class)
-        self.up_concat1 = UnetUp3_CT(filters[1] + len(self.prior_information_channels), filters[0], is_batchnorm, conv_bloc_class=conv_bloc_class)
+        self.up_concat4 = UnetUp3_CT(filters[4], filters[3], is_batchnorm)
+        self.up_concat3 = UnetUp3_CT(filters[3], filters[2], is_batchnorm)
+        self.up_concat2 = UnetUp3_CT(filters[2], filters[1], is_batchnorm)
+        self.up_concat1 = UnetUp3_CT(filters[1], filters[0], is_batchnorm)
 
         # deep supervision
         self.dsv4 = UnetDsv3(in_size=filters[3], out_size=n_classes, scale_factor=8)
@@ -76,11 +56,8 @@ class unet_pCT_cascading_bayesian_multi_att_dsv_3D(nn.Module):
         self.dsv1 = nn.Conv3d(in_channels=filters[0], out_channels=n_classes, kernel_size=1)
 
         # final conv (without any concat)
-        self.final = nn.Conv3d(n_classes*4, n_classes, 1)
-
-        if self.bayesian_skip_type == 'conv':
-            # let prior information skip whole network and integrate it here
-            self.final_bayesian_skip = nn.Conv3d(n_classes + len(self.prior_information_channels), n_classes, 1)
+        self.final1 = nn.Conv3d(n_classes*4, n_classes, 1)
+        self.final2 = nn.Conv3d(n_classes, n_classes, 1)
 
         # initialise weights
         for m in self.modules():
@@ -93,50 +70,39 @@ class unet_pCT_cascading_bayesian_multi_att_dsv_3D(nn.Module):
         # Feature Extraction
         conv1 = self.conv1(inputs)
         maxpool1 = self.maxpool1(conv1)
-        prior_resize1 = self.prior_resize1(inputs[:, self.prior_information_channels])
 
-        conv2 = self.conv2(torch.cat([maxpool1, prior_resize1], dim=1))
+        conv2 = self.conv2(maxpool1)
         maxpool2 = self.maxpool2(conv2)
-        prior_resize2 = self.prior_resize2(prior_resize1)
 
-        conv3 = self.conv3(torch.cat([maxpool2, prior_resize2], dim=1))
+        conv3 = self.conv3(maxpool2)
         maxpool3 = self.maxpool3(conv3)
-        prior_resize3 = self.prior_resize3(prior_resize2)
 
-        conv4 = self.conv4(torch.cat([maxpool3, prior_resize3], dim=1))
+        conv4 = self.conv4(maxpool3)
         maxpool4 = self.maxpool4(conv4)
-        prior_resize4 = self.prior_resize3(prior_resize3)
 
         # Gating Signal Generation
-        center = self.center(torch.cat([maxpool4, prior_resize4], dim=1))
+        center = self.center(maxpool4)
         gating = self.gating(center)
 
         # Attention Mechanism
         # Upscaling Part (Decoder)
         g_conv4, att4 = self.attentionblock4(conv4, gating)
-        up4 = self.up_concat4(g_conv4, torch.cat([center, prior_resize4], dim=1))
+        up4 = self.up_concat4(g_conv4, center)
         g_conv3, att3 = self.attentionblock3(conv3, up4)
-        up3 = self.up_concat3(g_conv3, torch.cat([up4, prior_resize3], dim=1))
+        up3 = self.up_concat3(g_conv3, up4)
         g_conv2, att2 = self.attentionblock2(conv2, up3)
-        up2 = self.up_concat2(g_conv2, torch.cat([up3, prior_resize2], dim=1))
-        up1 = self.up_concat1(conv1, torch.cat([up2, prior_resize1], dim=1))
+        up2 = self.up_concat2(g_conv2, up3)
+        up1 = self.up_concat1(conv1, up2)
 
         # Deep Supervision
         dsv4 = self.dsv4(up4)
         dsv3 = self.dsv3(up3)
         dsv2 = self.dsv2(up2)
         dsv1 = self.dsv1(up1)
-        final = self.final(torch.cat([dsv1,dsv2,dsv3,dsv4], dim=1))
+        final1 = self.final1(torch.cat([dsv1,dsv2,dsv3,dsv4], dim=1))
+        final2 = self.final2(final1)
 
-        # Bayesian skip connection
-        if self.bayesian_skip_type == 'conv':
-            final_with_bayesian_skip = self.final_bayesian_skip(
-                torch.cat([inputs[:, self.prior_information_channels], final], dim = 1))
-            return final_with_bayesian_skip
-
-        elif self.bayesian_skip_type == 'add':
-            final += inputs[:, self.prior_information_channels]
-            return final
+        return final2
 
 
     @staticmethod

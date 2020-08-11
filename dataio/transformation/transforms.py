@@ -80,7 +80,8 @@ class Transformations:
         :return:
         '''
         return {
-            'gsd_pCT': {'train': self.gsd_pCT_train_transform, 'valid': self.gsd_pCT_valid_transform}
+            'gsd_pCT': {'train': self.gsd_pCT_train_transform, 'valid': self.gsd_pCT_valid_transform},
+            'isles2018': {'train': self.isles2018_train_transform, 'valid': self.isles2018_valid_transform}
         }[self.name]
 
     def gsd_pCT_train_transform(self, seed=None):
@@ -122,4 +123,38 @@ class Transformations:
             ts.TypeCast(['float', 'float'])
         ])
 
+        return valid_transform
+
+    def isles2018_train_transform(self, seed=None):
+        train_transform = ts.Compose([
+            ts.ToTensor(),
+            ts.Pad(size=self.scale_size),
+            ts.TypeCast(['float', 'float']),
+            ts.RandomFlip(h=True, v=True, p=self.random_flip_prob),
+            # Todo Random Affine doesn't support channels --> try newer version of torchsample or torchvision
+            # ts.RandomAffine(rotation_range=self.rotate_val, translation_range=self.shift_val,
+            #                 zoom_range=self.scale_val, interp=('bilinear', 'nearest')),
+            ts.ChannelsFirst(),
+            # ts.NormalizeMedicPercentile(norm_flag=(True, False)),
+            # Todo apply channel wise normalisation
+            ts.NormalizeMedic(norm_flag=(True, False)),
+            # Todo fork torchsample and fix the Random Crop bug
+            # ts.ChannelsLast(), # seems to be needed for crop
+            # ts.RandomCrop(size=self.patch_size),
+            ts.TypeCast(['float', 'long'])
+        ])
+        return train_transform
+
+    def isles2018_valid_transform(self, seed=None):
+        valid_transform = ts.Compose([
+            ts.ToTensor(),
+            ts.Pad(size=self.scale_size),
+            ts.ChannelsFirst(),
+            ts.TypeCast(['float', 'float']),
+            # ts.NormalizeMedicPercentile(norm_flag=(True, False)),
+            ts.NormalizeMedic(norm_flag=(True, False)),
+            # ts.ChannelsLast(),
+            # ts.SpecialCrop(size=self.patch_size, crop_type=0),
+            ts.TypeCast(['float', 'long'])
+        ])
         return valid_transform
