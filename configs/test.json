@@ -1,0 +1,75 @@
+{
+  "training":{
+    "arch_type": "gsd_pCT",
+    "n_epochs": 50,
+    "lr_policy": "step",
+    "lr_decay_iters": 250,
+    "batchSize": 2,
+    "preloadData": true,
+    "early_stopping":{
+      "patience": 10,
+      "min_epochs": 15,
+      "monitor": "Seg_Loss"
+    },
+    "verbose": "True"
+  },
+  "visualisation":{
+    "display_port": 8097,
+    "save_epoch_freq": 1,
+    "no_html": true,
+    "display_winsize": 256,
+    "display_id": -1,
+    "display_single_pane_ncols": 0
+  },
+  "data_split": {
+    "train_size": 0.7,
+    "test_size": 0.15,
+    "validation_size": 0.15,
+    "seed": 42
+  },
+  "data_path": {
+   "gsd_pCT": "/Users/julian/temp/perfusion_data_sets/small_rescaled_data_set.npz"
+  },
+  "data_opts":{
+    "channels": [0]
+  },
+  "augmentation": {
+    "gsd_pCT": {
+      "rotate": 7.5,
+      "scale_val": [0.8, 1.2],
+      "max_deform": [15, 15, 5],
+      "shift_val": [0, 5],
+      "elastic_control_points": 7,
+      "random_flip_prob": 0.5,
+      "random_affine_prob": 0.5,
+      "random_elastic_prob": 0.5,
+      "random_noise_prob": 0.5,
+      "scale_size": [96,96,96,1],
+      "prudent": "False"
+    }
+  },
+  "model":{
+    "type":"seg",
+    "continue_train": false,
+    "which_epoch": -1,
+    "model_type": "unet_pct_cascading_bayesian_multi_att_dsv",
+    "tensor_dim": "3D",
+    "conv_bloc_type": "classic",
+    "optim": "SGD",
+    "division_factor": 16,
+    "input_nc": 1,
+    "output_nc": 2,
+    "prior_information_channels": [0],
+    "lr_rate": 1e-4,
+    "l2_reg_weight": 1e-6,
+    "feature_scale": 4,
+    "gpu_ids": [0],
+    "isTrain": true,
+    "checkpoints_dir": "./checkpoints",
+    "experiment_name": "temp",
+    "criterion": "dice_loss",
+    "loss_class_idx": [1]
+  }
+}
+
+
