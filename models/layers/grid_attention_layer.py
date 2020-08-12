@@ -70,6 +70,13 @@ class _GridAttentionBlockND(nn.Module):
         else:
             raise NotImplementedError('Unknown operation function.')
 
+        parallel = True
+        if parallel:
+            self.W = nn.DataParallel(self.W)
+            self.phi = nn.DataParallel(self.phi)
+            self.psi = nn.DataParallel(self.psi)
+            self.theta = nn.DataParallel(self.theta)
+
 
     def forward(self, x, g):
         '''
