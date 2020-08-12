@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -38,9 +39,11 @@ def train(arguments):
 
     # Setup the NN Model
     model = get_model(json_opts.model)
+    model = torch.nn.DataParallel(model)
+
     if network_debug:
-        print('# of pars: ', model.get_number_parameters())
-        print('fp time: {0:.3f} sec\tbp time: {1:.3f} sec per sample'.format(*model.get_fp_bp_time()))
+        print('# of pars: ', model.module.get_number_parameters())
+        print('fp time: {0:.3f} sec\tbp time: {1:.3f} sec per sample'.format(*model.module.get_fp_bp_time()))
         exit()
 
     # Setup Data Loader
@@ -59,14 +62,14 @@ def train(arguments):
     test_loader  = DataLoader(dataset=test_dataset,  num_workers=16, batch_size=train_opts.batchSize, shuffle=False)
 
     # Visualisation Parameters
-    visualizer = Visualiser(json_opts.visualisation, save_dir=model.save_dir)
+    visualizer = Visualiser(json_opts.visualisation, save_dir=model.module.save_dir)
     error_logger = ErrorLogger()
 
     # Training Function
-    model.set_scheduler(train_opts)
+    model.module.set_scheduler(train_opts)
     # Setup Early Stopping
     early_stopper = EarlyStopper(json_opts.training.early_stopping, verbose=json_opts.training.verbose)
-    for epoch in range(model.which_epoch, train_opts.n_epochs):
+    for epoch in range(model.module.which_epoch, train_opts.n_epochs):
         print('(epoch: %d, total # iters: %d)' % (epoch, len(train_loader)))
         train_volumes = []
         validation_volumes = []
@@ -74,16 +77,16 @@ def train(arguments):
         # Training Iterations
         for epoch_iter, (images, labels, indices) in tqdm(enumerate(train_loader, 1), total=len(train_loader)):
             # Make a training update
-            model.set_input(images, labels)
-            model.optimize_parameters()
-            #model.optimize_parameters_accumulate_grd(epoch_iter)
+            model.module.set_input(images, labels)
+            model.module.optimize_parameters()
+            #model.module.optimize_parameters_accumulate_grd(epoch_iter)
 
             # Error visualisation
-            errors = model.get_current_errors()
+            errors = model.module.get_current_errors()
             error_logger.update(errors, split='train')
 
             ids = train_dataset.get_ids(indices)
-            volumes = model.get_current_volumes()
+            volumes = model.module.get_current_volumes()
             visualizer.display_current_volumes(volumes, ids, 'train', epoch)
             train_volumes.append(volumes)
 
@@ -93,17 +96,17 @@ def train(arguments):
                 ids = dataset.get_ids(indices)
 
                 # Make a forward pass with the model
-                model.set_input(images, labels)
-                model.validate()
+                model.module.set_input(images, labels)
+                model.module.validate()
 
                 # Error visualisation
-                errors = model.get_current_errors()
-                stats = model.get_segmentation_stats()
+                errors = model.module.get_current_errors()
+                stats = model.module.get_segmentation_stats()
                 error_logger.update({**errors, **stats}, split=split)
 
                 if split == 'validation':  # do not look at testing
                     # Visualise predictions
-                    volumes = model.get_current_volumes()
+                    volumes = model.module.get_current_volumes()
                     visualizer.display_current_volumes(volumes, ids, split, epoch)
                     validation_volumes.append(volumes)
 
@@ -119,11 +122,11 @@ def train(arguments):
 
         # Save the model parameters
         if not early_stopper.is_improving is False:
-            model.save(json_opts.model.model_type, epoch)
-            save_config(json_opts, json_filename, model, epoch)
+            model.module.save(json_opts.model.model_type, epoch)
+            save_config(json_opts, json_filename, model.module, epoch)
 
         # Update the model learning rate
-        model.update_learning_rate(metric=early_stopper.get_current_validation_loss())
+        model.module.update_learning_rate(metric=early_stopper.get_current_validation_loss())
 
         if early_stopper.interrogate(epoch):
             break
@@ -139,3 +142,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     train(args)
+
