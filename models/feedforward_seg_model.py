@@ -31,6 +31,8 @@ class FeedForwardSegmentation(BaseModel):
                                tensor_dim=opts.tensor_dim, feature_scale=opts.feature_scale,
                                attention_dsample=opts.attention_dsample,
                                prior_information_channels=opts.prior_information_channels)
+        self.net = torch.nn.DataParallel(self.net)
+        self.module = self.net.module
         if self.use_cuda: self.net = self.net.cuda()
 
         # load the model if a path is specified or it is in inference mode
@@ -86,10 +88,12 @@ class FeedForwardSegmentation(BaseModel):
                 self.prediction = self.net(Variable(self.input))
                 # Apply a softmax and return a segmentation map
                 if self.prediction.shape[1] > 1: # multiclass
-                    self.logits = self.net.apply_argmax_softmax(self.prediction, dim=1)
+                    # self.logits = self.net.apply_argmax_softmax(self.prediction, dim=1)
+                    self.logits = self.module.apply_argmax_softmax(self.prediction, dim=1)
                     self.pred_seg = self.logits.data.max(1)[1].unsqueeze(1) # give each voxel the class index with max proba
                 else:
-                    self.logits = self.net.apply_argmax_softmax(self.prediction, dim=None)
+                    # self.logits = self.net.apply_argmax_softmax(self.prediction, dim=None)
+                    self.logits = self.module.apply_argmax_softmax(self.prediction, dim=None)
                     self.pred_seg = (self.logits > 0.5).float()
 
     def backward(self):
