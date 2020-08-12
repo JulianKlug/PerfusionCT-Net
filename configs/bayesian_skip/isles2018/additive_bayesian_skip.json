@@ -28,7 +28,7 @@
     "seed": 42
   },
   "data_path": {
-    "isles2018": "/home/klug/working_data/perfusion_maps/scaled_standardized_isles_data_set_one_hot_encoded_core.npz"
+    "isles2018": "/home/klug/working_data/perfusion_maps/scaled_standardized_isles_data_set_with_one_hot_encoded_core.npz"
   },
   "data_opts":{
     "channels": [0, 1, 2, 3, 4 , 5, 6]
