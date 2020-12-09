@@ -3,6 +3,7 @@ import os
 from sklearn.metrics import jaccard_score
 from torch.utils.data import DataLoader
 import numpy as np
+from tqdm import tqdm
 
 from dataio.loaders import get_dataset, get_dataset_path
 from dataio.transformation import get_dataset_transformation
@@ -13,7 +14,7 @@ from utils.metrics import dice_score, distance_metric, precision_and_recall, sin
 from utils.utils import json_file_to_pyobj, mkdir
 
 
-def evaluate_saved_model(model_config, split='validation', model_path=None, data_path=None, save_directory=None, save_nii=False):
+def evaluate_saved_model(model_config, split='validation', model_path=None, data_path=None, save_directory=None, save_nii=False, save_npz=False):
     # Load options
     json_opts = json_file_to_pyobj(model_config)
     train_opts = json_opts.training
@@ -58,12 +59,17 @@ def evaluate_saved_model(model_config, split='validation', model_path=None, data
     # Setup stats logger
     stat_logger = StatLogger()
 
+    if save_npz:
+        all_predicted = []
+
     # test
-    for iteration, data in enumerate(data_loader, 1):
+    for iteration, data in tqdm(enumerate(data_loader, 1)):
         model.set_input(data[0], data[1])
         model.test()
 
         input_arr = np.squeeze(data[0].cpu().numpy()).astype(np.float32)
+        prior_arr = np.squeeze(data[0].cpu().numpy())[5].astype(np.int16)
+        prior_arr[prior_arr > 0] = 1
         label_arr = np.squeeze(data[1].cpu().numpy()).astype(np.int16)
         ids = dataset.get_ids(data[2])
         output_arr = np.squeeze(model.pred_seg.cpu().byte().numpy()).astype(np.int16)
@@ -75,6 +81,11 @@ def evaluate_saved_model(model_config, split='validation', model_path=None, data
         precision, recall = precision_and_recall(label_arr, output_arr, n_class=int(2))
         sp = specificity(label_arr, output_arr)
         jaccard = jaccard_score(label_arr.flatten(), output_arr.flatten())
+
+        # compute stats for the prior that is used
+        prior_dice = single_class_dice_score(label_arr, prior_arr)
+        prior_precision, prior_recall = precision_and_recall(label_arr, prior_arr, n_class=int(2))
+
         stat_logger.update(split=split, input_dict={'img_name': ids[0],
                                                      'dice_bg': dice_vals[0],
                                                      'dice_les': dice_vals[1],
@@ -84,7 +95,10 @@ def evaluate_saved_model(model_config, split='validation', model_path=None, data
                                                      'specificity': sp,
                                                      'md_les': md,
                                                      'hd_les': hd,
-                                                     'jaccard': jaccard
+                                                     'jaccard': jaccard,
+                                                     'dice_prior': prior_dice,
+                                                     'prec_prior': prior_precision[1],
+                                                     'reca_prior': prior_recall[1]
                                                      })
 
         if save_nii:
@@ -107,9 +121,17 @@ def evaluate_saved_model(model_config, split='validation', model_path=None, data
             sitk.WriteImage(label_img, os.path.join(save_directory, '{}_lbl.nii.gz'.format(iteration)))
             sitk.WriteImage(predi_img, os.path.join(save_directory, '{}_pred.nii.gz'.format(iteration)))
 
+        if save_npz:
+            all_predicted.append(output_arr)
+
+
     stat_logger.statlogger2csv(split=split, out_csv_name=os.path.join(save_directory, split + '_stats.csv'))
     for key, (mean_val, std_val) in stat_logger.get_errors(split=split).items():
         print('-', key, ': \t{0:.3f}+-{1:.3f}'.format(mean_val, std_val), '-')
+
+    if save_npz:
+        np.savez_compressed(os.path.join(save_directory, 'predictions.npz'),
+                            predicted=np.array(all_predicted))
 
 
 # if __name__ == '__main__':
@@ -123,5 +145,12 @@ def evaluate_saved_model(model_config, split='validation', model_path=None, data
 #     validation(args.config)
 
 
-evaluate_saved_model('/Users/julian/temp/BAYESIAN_SKIP_SAVED_EXPERIMENTS/ISLES/std_isles_convolution_bayesian_skip/trained_convolutional_bayesian_skip.json', model_path='/Users/julian/temp/BAYESIAN_SKIP_SAVED_EXPERIMENTS/ISLES/std_isles_convolution_bayesian_skip/303_net_unet_pct_bayesian_multi_att_dsv.pth',
-                     data_path='/Users/julian/temp/perfusion_data_sets/isles_dataset/scaled_standardized_isles_data_set_with_core.npz', split='validation', save_nii=True)
+# evaluate_saved_model('/Users/julian/temp/BAYESIAN_SKIP_USE_PREDICTED_AS_PRIOR/prediction_of_prior/trained_convolutional_bayesian_skip.json',
+#                      model_path='/Users/julian/temp/BAYESIAN_SKIP_USE_PREDICTED_AS_PRIOR/prediction_of_prior/303_net_unet_pct_bayesian_multi_att_dsv.pth',
+#                      data_path='/Users/julian/temp/BAYESIAN_SKIP_USE_PREDICTED_AS_PRIOR/prediction_of_prior/rescaled_with_ncct_dataset_with_core.npz',
+#                      split='test', save_nii=True, save_npz=True)
+
+evaluate_saved_model('/Users/julian/temp/BAYESIAN_SKIP_MODEL_EVALUATION/noisy_prior/GSD/noisy_prior_convolutional_bayesian_skip/trained_noisy_prior_convolutional_bayesian_skip.json',
+                     model_path='/Users/julian/temp/BAYESIAN_SKIP_MODEL_EVALUATION/noisy_prior/GSD/noisy_prior_convolutional_bayesian_skip/223_net_unet_pct_bayesian_multi_att_dsv.pth',
+                     data_path='/Users/julian/stroke_datasets/dataset_files/perfusion_data_sets/with_prior/noisy_prior/rescaled_with_ncct_dataset_with_core_noisy5.npz',
+                     split='test', save_nii=False, save_npz=False)
