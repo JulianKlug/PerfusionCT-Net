@@ -142,7 +142,6 @@ class EarlyStopper():
         self.patience = json_opts.patience if hasattr(json_opts, 'patience') else 10
         self.min_epochs = json_opts.min_epochs if hasattr(json_opts, 'min_epochs') else 100
         self.monitor = json_opts.monitor if hasattr(json_opts, 'monitor') else 'Seg_Loss'
-        self.maximize = json_opts.maximize if hasattr(json_opts, 'maximize') else False
         self.verbose = verbose
 
         self.index = 0
@@ -178,14 +177,6 @@ class EarlyStopper():
             self.best_epoch = epoch
 
         elif current_loss <= self.best_loss:
-            self.index = 0
-            self.best_loss = current_loss
-            self.best_epoch = epoch
-            self.is_improving = True
-            if self.verbose:
-                print('current loss {} improved from {} at epoch {}'.format(current_loss, self.best_loss, self.best_epoch),
-                      '-- idx_early_stopping = {} / {}'.format(self.index, self.patience))
-        elif self.maximize and current_loss >= self.best_loss:
             self.index = 0
             self.best_loss = current_loss
             self.best_epoch = epoch

@@ -25,13 +25,13 @@
     "train_size": 0.7,
     "test_size": 0.15,
     "validation_size": 0.15,
-    "seed": 42
+    "seed": 72
   },
   "data_path": {
     "gsd_pCT": "/home/klug/working_data/perfusion_maps/rescaled_with_ncct_dataset_with_core.npz"
   },
   "data_opts":{
-    "channels": [0, 1, 2, 3, 4]
+    "channels": [0, 1, 2, 3, 4 , 5]
   },
   "augmentation": {
     "gsd_pCT": {
@@ -51,18 +51,19 @@
     "type":"seg",
     "continue_train": false,
     "which_epoch": -1,
-    "model_type": "unet_pct_multi_att_dsv",
+    "model_type": "unet_pct_multi_att_dsv_with_2fconv",
     "tensor_dim": "3D",
     "division_factor": 16,
     "input_nc": 6,
     "output_nc": 2,
+    "prior_information_channels": [5],
     "lr_rate": 1e-4,
     "l2_reg_weight": 1e-6,
     "feature_scale": 4,
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "baseline_without_prior",
+    "experiment_name": "baseline_prior_as_input_with_2fconv",
     "criterion": "dice_loss"
   }
 }
