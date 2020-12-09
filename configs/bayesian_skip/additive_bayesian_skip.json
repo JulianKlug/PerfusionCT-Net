@@ -44,7 +44,7 @@
       "random_affine_prob": 0.5,
       "random_elastic_prob": 0.5,
       "random_noise_prob": 0.5,
-      "scale_size": [96,96,96,6]
+      "scale_size": [96,96,96,7]
     }
   },
   "model":{
@@ -55,7 +55,7 @@
     "tensor_dim": "3D",
     "conv_bloc_type": "classic",
     "division_factor": 16,
-    "input_nc": 6,
+    "input_nc": 7,
     "output_nc": 2,
     "prior_information_channels": [5, 6],
     "bayesian_skip_type": "add",
@@ -65,7 +65,7 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "additive_bayesian_skip",
+    "experiment_name": "additive_bayesian_skip_one_hot_encoded_core",
     "criterion": "dice_loss"
   }
 }
