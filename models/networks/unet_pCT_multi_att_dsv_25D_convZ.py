@@ -9,8 +9,7 @@ from models.layers.grid_attention_layer import GridAttentionBlock3D
 class unet_pCT_multi_att_dsv_25D_convZ(nn.Module):
     """
     An implementation of a 2.5D network as described by Yu et al.
-    Z dimension is kept until the end, and finally maxpooled. No convolutions on z channel.
-    Alternatives: allow convolutions on Z, use Z as channel, convolute Z in final layer instead of maxpooling
+    Z dimension is kept until the end, and finally convoluted along z.
     """
 
     def __init__(self, feature_scale=4, n_classes=2, is_deconv=True, in_channels=4, input_nz = 5,
