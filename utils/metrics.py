@@ -3,7 +3,7 @@
 
 import numpy as np
 import cv2
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, multilabel_confusion_matrix
 
 
 def _fast_hist(label_true, label_pred, n_class):
@@ -109,6 +109,22 @@ def precision_and_recall(label_gt, label_pred, n_class):
 
     return precision, recall
 
+def specificity(label_gt, label_pred):
+    mcm = multilabel_confusion_matrix(label_gt.flatten(), label_pred.flatten())
+    tn = mcm[:, 0, 0]
+    tp = mcm[:, 1, 1]
+    fn = mcm[:, 1, 0]
+    fp = mcm[:, 0, 1]
+    sp = tn / (tn + fp)
+    return sp
+
+def intersection_over_union(input, target):
+    smooth = 1.0e-6
+    iflat = np.array(input).flatten()
+    tflat = np.array(target).flatten()
+    intersection = (iflat * tflat).sum()
+    union = iflat.sum() + tflat.sum() - intersection
+    return intersection / (union + smooth)
 
 def distance_metric(seg_A, seg_B, dx, k):
     """
@@ -132,14 +148,14 @@ def distance_metric(seg_A, seg_B, dx, k):
         # The distance is defined only when both contours exist on this slice
         if np.sum(slice_A) > 0 and np.sum(slice_B) > 0:
             # Find contours and retrieve all the points
-            _, contours, _ = cv2.findContours(cv2.inRange(slice_A, 1, 1),
+            contours, _ = cv2.findContours(cv2.inRange(slice_A, 1, 1),
                                               cv2.RETR_EXTERNAL,
                                               cv2.CHAIN_APPROX_NONE)
             pts_A = contours[0]
             for i in range(1, len(contours)):
                 pts_A = np.vstack((pts_A, contours[i]))
 
-            _, contours, _ = cv2.findContours(cv2.inRange(slice_B, 1, 1),
+            contours, _ = cv2.findContours(cv2.inRange(slice_B, 1, 1),
                                               cv2.RETR_EXTERNAL,
                                               cv2.CHAIN_APPROX_NONE)
             pts_B = contours[0]

@@ -122,6 +122,46 @@ class UnetConv3(nn.Module):
         return outputs
 
 
+class ResidualBlock3d(nn.Module):
+
+    def __init__(self, in_size, out_size, is_batchnorm=True, downsample=None,
+                  kernel_size=(3,3,1), padding_size=(1,1,0), init_stride=(1,1,1)):
+        super(ResidualBlock3d, self).__init__()
+
+        # Both self.conv1 and self.downsample layers downsample the input when stride != 1
+        self.conv1 = nn.Conv3d(in_size, out_size, kernel_size, init_stride, padding_size)
+        self.bn1 = nn.BatchNorm3d(out_size)
+        self.relu1 = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv3d(out_size, out_size, kernel_size, 1, padding_size)
+        self.bn2 = nn.BatchNorm3d(out_size)
+        self.relu2 = nn.ReLU(inplace=True)
+
+        self.downsample = downsample
+
+        self.is_batchnorm = is_batchnorm
+        self.stride = init_stride
+
+    def forward(self, x):
+        identity = x
+
+        out = self.conv1(x)
+        if self.is_batchnorm:
+            out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        if self.is_batchnorm:
+            out = self.bn2(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out += identity
+        out = self.relu(out)
+
+        return out
+
+
 class FCNConv3(nn.Module):
     def __init__(self, in_size, out_size, is_batchnorm, kernel_size=(3,3,1), padding_size=(1,1,0), init_stride=(1,1,1)):
         super(FCNConv3, self).__init__()
@@ -257,14 +297,19 @@ class UnetUp3(nn.Module):
 
 
 class UnetUp3_CT(nn.Module):
-    def __init__(self, in_size, out_size, is_batchnorm=True):
+    def __init__(self, in_size, out_size, is_batchnorm=True, conv_bloc_class=None):
         super(UnetUp3_CT, self).__init__()
-        self.conv = UnetConv3(in_size + out_size, out_size, is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
+
+        if conv_bloc_class is None:
+            conv_bloc_class = UnetConv3
+
+        self.conv = conv_bloc_class(in_size + out_size, out_size, is_batchnorm, kernel_size=(3,3,3), padding_size=(1,1,1))
         self.up = Upsample(scale_factor=(2, 2, 2), mode='trilinear')
 
         # initialise the blocks
         for m in self.children():
             if m.__class__.__name__.find('UnetConv3') != -1: continue
+            if m.__class__.__name__.find('ResidualBlock3d') != -1: continue
             init_weights(m, init_type='kaiming')
 
     def forward(self, inputs1, inputs2):
