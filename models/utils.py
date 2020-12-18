@@ -6,7 +6,7 @@ import os
 import numpy as np
 import torch.optim as optim
 from torch.nn import CrossEntropyLoss
-from utils.metrics import segmentation_scores, dice_score_list, single_class_dice_score, roc_auc
+from utils.metrics import segmentation_scores, dice_score_list, single_class_dice_score, roc_auc, subject_wise_single_class_dice_score
 from sklearn import metrics
 from .layers.loss import *
 
@@ -85,7 +85,7 @@ def adjust_learning_rate(optimizer, init_lr, epoch):
         param_group['lr'] = lr
 
 
-def segmentation_stats(prediction, target):
+def segmentation_stats(prediction, target, n_subjects=1):
     n_classes = prediction.size(1)
     if n_classes == 1:
         pred_lbls = (torch.sigmoid(prediction) > 0.5)[0].int().cpu().numpy()
@@ -103,9 +103,10 @@ def segmentation_stats(prediction, target):
     iou = segmentation_scores(gts, preds, n_class=n_unique_classes)
     class_wise_dice = dice_score_list(gts, preds, n_class=n_unique_classes)
     single_class_dice = single_class_dice_score(gts, preds)
+    subject_wise_dice = subject_wise_single_class_dice_score(gts, preds, n_subjects)
     roc_auc_score = roc_auc(gts, preds)
 
-    return iou, class_wise_dice, single_class_dice, roc_auc_score
+    return iou, class_wise_dice, single_class_dice, subject_wise_dice, roc_auc_score
 
 
 def classification_scores(gts, preds, labels):

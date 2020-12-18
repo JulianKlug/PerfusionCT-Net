@@ -81,6 +81,7 @@ class Transformations:
         '''
         return {
             'gsd_pCT': {'train': self.gsd_pCT_train_transform, 'valid': self.gsd_pCT_valid_transform},
+            'gsd_pCT_25D': {'train': self.gsd_pCT_train_transform, 'valid': self.gsd_pCT_valid_transform}
             'isles2018': {'train': self.isles2018_train_transform, 'valid': self.isles2018_valid_transform}
         }[self.name]
 

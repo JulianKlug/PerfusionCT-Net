@@ -12,11 +12,12 @@ class ModelOpts:
         self.save_dir = './checkpoints/default'
         self.model_type = 'unet'
         self.input_nc = 1
+        self.input_nz = 5  # number of input slices in 2.5D model along z
         self.output_nc = 4
         self.lr_rate = 1e-12
         self.l2_reg_weight = 0.0
         self.feature_scale = 4
-        self.tensor_dim = '2D'
+        self.tensor_dim = '3D'
         self.conv_bloc_type = 'classic'
         self.path_pre_trained_model = None
         self.criterion = 'cross_entropy'
@@ -48,11 +49,12 @@ class ModelOpts:
         self.continue_train = opts.continue_train
         self.which_epoch = opts.which_epoch
 
-        if hasattr(opts, 'type'): self.type = opts.type
+        if hasattr(opts, 'type'):          self.type = opts.type
         if hasattr(opts, 'l2_reg_weight'): self.l2_reg_weight = opts.l2_reg_weight
         if hasattr(opts, 'lr_rate'):       self.lr_rate = opts.lr_rate
         if hasattr(opts, 'feature_scale'): self.feature_scale = opts.feature_scale
         if hasattr(opts, 'tensor_dim'):    self.tensor_dim = opts.tensor_dim
+        if hasattr(opts, 'input_nz'):      self.input_nz = opts.input_nz
         if hasattr(opts, 'conv_bloc_type'):    self.conv_bloc_type = opts.conv_bloc_type
 
         if hasattr(opts, 'path_pre_trained_model'): self.path_pre_trained_model = opts.path_pre_trained_model
@@ -83,19 +85,6 @@ def get_model(json_opts):
         # Return the model type
         from .feedforward_seg_model import FeedForwardSegmentation
         model = FeedForwardSegmentation()
-
-
-    # TODO: unet classifiers by atnet (non usefull for now)
-    # elif model_type == 'classifier':
-    #     # Return the model type
-    #     from atnet.models.feedforward_classifier import FeedForwardClassifier
-    #     model = FeedForwardClassifier()
-    #
-    # elif model_type == 'aggregated_classifier':
-    #     # Return the model type
-    #     from atnet.models.aggregated_classifier import AggregatedClassifier
-    #     model = AggregatedClassifier()
-
 
     # Initialise the created model
     model.initialize(model_opts)

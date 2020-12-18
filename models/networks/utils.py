@@ -319,6 +319,25 @@ class UnetUp3_CT(nn.Module):
         outputs1 = F.pad(inputs1, padding)
         return self.conv(torch.cat([outputs1, outputs2], 1))
 
+class UnetUp25d_CT(nn.Module):
+    """ 2.5D version of Unet Upsampling layer (no upsampling along z)
+    """
+    def __init__(self, in_size, out_size, is_batchnorm=True):
+        super(UnetUp25d_CT, self).__init__()
+        self.conv = UnetConv3(in_size + out_size, out_size, is_batchnorm, kernel_size=(3,3,1), padding_size=(1,1,0))
+        self.up = Upsample(scale_factor=(2, 2, 1), mode='trilinear')
+
+        # initialise the blocks
+        for m in self.children():
+            if m.__class__.__name__.find('UnetConv3') != -1: continue
+            init_weights(m, init_type='kaiming')
+
+    def forward(self, inputs1, inputs2):
+        outputs2 = self.up(inputs2)
+        offset = outputs2.size()[2] - inputs1.size()[2]
+        padding = 2 * [offset // 2, offset // 2, 0]
+        outputs1 = F.pad(inputs1, padding)
+        return self.conv(torch.cat([outputs1, outputs2], 1))
 
 # Squeeze-and-Excitation Network
 class SqEx(nn.Module):
