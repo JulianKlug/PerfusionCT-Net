@@ -3,12 +3,12 @@
     "arch_type": "gsd_pCT",
     "n_epochs": 1000,
     "lr_policy": "step",
-    "lr_decay_iters": 250,
+    "lr_decay_iters": 200,
     "batchSize": 2,
     "preloadData": true,
     "early_stopping":{
       "patience": 25,
-      "min_epochs": 300,
+      "min_epochs": 250,
       "monitor": "Seg_Loss"
     },
     "verbose": "True"
@@ -62,8 +62,8 @@
     "gpu_ids": [0],
     "isTrain": true,
     "checkpoints_dir": "./checkpoints",
-    "experiment_name": "temp",
-    "criterion": "focal_tversky_loss",
+    "experiment_name": "3d_tmax_single_class_combi_loss_test",
+    "criterion": "single_class_combined_loss",
     "loss_class_idx": [1]
   }
 }
