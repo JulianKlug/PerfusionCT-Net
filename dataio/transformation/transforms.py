@@ -82,6 +82,7 @@ class Transformations:
         return {
             'gsd_pCT': {'train': self.gsd_pCT_train_transform, 'valid': self.gsd_pCT_valid_transform},
             'gsd_pCT_25D': {'train': self.gsd_pCT_train_transform, 'valid': self.gsd_pCT_valid_transform}
+            'isles2018': {'train': self.isles2018_train_transform, 'valid': self.isles2018_valid_transform}
         }[self.name]
 
     def gsd_pCT_train_transform(self, seed=None):
@@ -123,4 +124,24 @@ class Transformations:
             ts.TypeCast(['float', 'float'])
         ])
 
+        return valid_transform
+
+    def isles2018_train_transform(self, seed=None):
+        train_transform = ts.Compose([
+            ts.ToTensor(),
+            ts.Pad(size=self.scale_size),
+            ts.TypeCast(['float', 'float']),
+            ts.RandomFlip(h=True, v=True, p=self.random_flip_prob),
+            ts.ChannelsFirst(),
+            ts.TypeCast(['float', 'long'])
+        ])
+        return train_transform
+
+    def isles2018_valid_transform(self, seed=None):
+        valid_transform = ts.Compose([
+            ts.ToTensor(),
+            ts.Pad(size=self.scale_size),
+            ts.ChannelsFirst(),
+            ts.TypeCast(['float', 'long'])
+        ])
         return valid_transform

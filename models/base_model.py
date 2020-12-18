@@ -23,6 +23,8 @@ class BaseModel():
 
     def initialize(self, opt, **kwargs):
         self.gpu_ids = opt.gpu_ids
+        if len(self.gpu_ids) < 1:
+            self.use_cuda = False
         self.isTrain = opt.isTrain
         self.ImgTensor = torch.cuda.FloatTensor if self.gpu_ids else torch.Tensor
         self.LblTensor = torch.cuda.FloatTensor if self.gpu_ids else torch.Tensor

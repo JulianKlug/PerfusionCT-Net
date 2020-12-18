@@ -28,7 +28,8 @@ class GenevaStrokeDataset_pCT(data.Dataset):
         self.params = np.load(dataset_path, allow_pickle=True)['params']
         self.channels = channels
         print('Geneva Stroke Dataset (perfusion CT maps) parameters: ', self.params)
-        print('Using channels:', np.array(['Tmax', 'CBF', 'MTT', 'CBV'])[channels])
+        # todo fix dataset params for with_core dataset
+        # print('Using channels:', [self.params.item()['ct_sequences'][channel] for channel in channels])
 
         self.ids = np.load(dataset_path, allow_pickle=True)['ids']
 
