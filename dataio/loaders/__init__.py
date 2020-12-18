@@ -9,7 +9,7 @@ def get_dataset(name):
     """
     return {
         'gsd_pCT': GenevaStrokeDataset_pCT,
-        'gsd_pCT_25D': GenevaStrokeDataset_25D_pCT
+        'gsd_pCT_25D': GenevaStrokeDataset_25D_pCT,
         'isles2018': Isles2018TrainingDataset,
     }[name]
 

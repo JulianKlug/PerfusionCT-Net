@@ -72,7 +72,7 @@ def _get_model_instance(name, tensor_dim):
         'unet_grid_gating': {'3D': unet_grid_attention_3D},
         'unet_pct_multi_att_dsv': {'3D': unet_pCT_multi_att_dsv_3D},
         'unet_pct_multi_att_dsv_25D_poolZ': {'3D': unet_pCT_multi_att_dsv_25D_poolZ},
-        'unet_pct_multi_att_dsv_25D_convZ': {'3D': unet_pCT_multi_att_dsv_25D_convZ}
+        'unet_pct_multi_att_dsv_25D_convZ': {'3D': unet_pCT_multi_att_dsv_25D_convZ},
         'unet_pct_bayesian_multi_att_dsv': {'3D': unet_pCT_bayesian_multi_att_dsv_3D},
         'unet_pct_cascading_bayesian_multi_att_dsv': {'3D': unet_pCT_cascading_bayesian_multi_att_dsv_3D},
         'unet_pct_multi_att_dsv_with_2fconv': {'3D': unet_pCT_multi_att_dsv_with_2fconv_3D}
