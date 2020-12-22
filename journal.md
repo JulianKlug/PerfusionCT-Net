@@ -168,6 +168,28 @@ Original work by [Salehi et al](https://arxiv.org/abs/1706.05721) and [Abraham e
 - combined loss with single class volume loss seems to converge slightly faster
 - combined loss yields worse results than dice loss alone on validation, with probably smaller std 
 
+##  2.5 Dimensional input
+
+|Start Date|End Date  |
+|----------|----------|
+|2020-07-01|2020-12-15|
+
+Method: Use slabs along z-axis to infer segmentation on middle slice. 
+- convZ: in the final step, the slab is convolved into a single slice
+- poolZ: in the final step, the slab is maxpooled into a single slice
+
+Original idea and work by [Xue et al](https://www.sciencedirect.com/science/article/pii/S2213158219304656).
+
+Tested with 'single_class_combined_loss'
+
+|Method| Dice over time| Best validation dice | Best validation epoch |
+|----------|----------|----------|----------|
+|Standard 3D| ![Dice Score](./static/figures/2.5D/3D_baseline_overall_dice.png "Dice over time with baseline 3D network")| 0.124896301 | 270 |
+|2.5D, convZ| ![Dice Score](./static/figures/2.5D/2.5D_convZ_overall_Dice.png "Dice over time with single class Dice as loss")| 0.234612097 | 186 |
+|2.5D, poolZ| ![Dice Score](./static/figures/2.5D/2.5D_poolZ_overall_Dice.png "Dice over time with single class Dice as loss")| 0.249026386 | 170 |
+
+### TODO Recheck baseline
+
 # TODO
 
 - Implement augmentation
