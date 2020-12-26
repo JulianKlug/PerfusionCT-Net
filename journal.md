@@ -182,13 +182,51 @@ Original idea and work by [Xue et al](https://www.sciencedirect.com/science/arti
 
 Tested with 'single_class_combined_loss'
 
-|Method| Dice over time| Best validation dice | Best validation epoch |
-|----------|----------|----------|----------|
-|Standard 3D| ![Dice Score](./static/figures/2.5D/3D_baseline_overall_dice.png "Dice over time with baseline 3D network")| 0.124896301 | 270 |
-|2.5D, convZ| ![Dice Score](./static/figures/2.5D/2.5D_convZ_overall_Dice.png "Dice over time with single class Dice as loss")| 0.234612097 | 186 |
-|2.5D, poolZ| ![Dice Score](./static/figures/2.5D/2.5D_poolZ_overall_Dice.png "Dice over time with single class Dice as loss")| 0.249026386 | 170 |
+|Method| Loss | Dice over time| Best validation dice (Overall dice)| Best validation epoch |
+|----------|----------|----------|----------|----------|
+|Standard 3D| Single Class Combined Loss | ![Dice Score](./static/journal/2.5D/3D_baseline_overall_dice.png "Dice over time with baseline 3D network")| 0.124896301 | 270 |
+|2.5D, convZ| Single Class Combined Loss | ![Dice Score](./static/journal/2.5D/2.5D_convZ_overall_Dice.png "Dice over time with convolutional 2.5D Net")| 0.234612097 | 186 |
+|2.5D, poolZ| Single Class Combined Loss | ![Dice Score](./static/journal/2.5D/2.5D_poolZ_overall_Dice.png "Dice over time with maxpooling 2.5D Net")| 0.249026386 | 170 |
 
 ### TODO Recheck baseline
+
+
+##  Bayesian Skip Net
+
+|Start Date|End Date  |
+|----------|----------|
+|2020-07-01|2020-08-01|
+
+Perfusion CT is widely used in acute ischemic stroke to determine eligibility for acute treatment, by defining an ischemic core and penumbra. In this work presented at the Brain Lesion Workshop at MICCAI 2020, we used a novel way of building on prior information for the automatic prediction and segmentation of stroke lesions. We reformulate the task to identify differences from a prior segmentation by extending a three-dimensional Attention Gated Unet with a skip connection allowing only an unchanged prior to bypass most of the network. We show that this technique improves results obtained by a baseline Attention Gated Unet on both the Geneva Stroke Dataset and the ISLES 2018 dataset.
+
+### Video explanation
+
+Click on the image below:
+
+[![Bayesian Skip Net Presentation](https://img.youtube.com/vi/PbyxpUMV8-w/0.jpg)](https://www.youtube.com/watch?v=PbyxpUMV8-w)
+
+### Comparison
+
+|Method| Dice over time| Best validation dice (Class 1) | Best validation epoch |
+|----------|----------|----------|----------|
+|Standard Unet| ![Dice Score](./static/journal/bayesianSkipNet/3D_Unet_DiceLoss_baseline.png "Dice over time with baseline 3D network")| 0.253963743 | 192 |
+|Bayesian Skip Net| ![Dice Score](./static/journal/bayesianSkipNet/bayesianSkipNet_overall_dice.png "Dice over time with the Bayesian Skip Net")| 0.348940217 | 187 |
+
+Experimental results on test and validation splits for the Geneva Stroke Dataset. The results are reported in terms of mean and standard deviation for Dice score, precision and recall. The proposed Unet with bayesian skip with Method A) and B) is benchmarked against the baseline Attention Gated Unet. The prior segmentation's performance is reported as reference. Best model results in bold.
+
+
+|Data Split|Method| Dice | Precision | Recall |
+|----------|----------|----------|----------|----------|
+| Validation | Prior | 0.125 +/- 0.135  |  0.149 +/-  0.128 | 0.171 +/- 0.194 |
+| Validation | Unet | 0.270 +/- 0.215 | 0.265 +/- 0.299 | **0.404** +/- 0.336 |
+| Validation | Unet+Method A |  0.246 +/- 0.206 | 0.221 +/- 0.247 | 0.300 +/- 0.299 |
+| Validation | Unet+Method B | **0.292** +/- 0.211 | **0.348** +/- 0.333 | 0.294 +/- 0.257 |
+| Test | Prior | 0.099 +/- 0.110 | 0.109 +/- 0.116 | 0.119 +/- 0.163 |
+| Test | Unet | 0.192 +/- 0.156 | 0.189 +/- 0.235 | **0.271** +/- 0.284 |
+| Test | Unet+Method A | 0.181 +/- 0.154 | 0.132 +/- 0.187 | 0.278 +/- 0.324 |
+| Test | Unet+Method B | **0.212** +/- 0.136 | **0.289** +/- 0.333 | 0.188 +/- 0.219 |
+
+
 
 # TODO
 
