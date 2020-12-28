@@ -61,9 +61,9 @@
     "feature_scale": 4,
     "gpu_ids": [0],
     "isTrain": true,
-    "checkpoints_dir": "./checkpoints",
-    "experiment_name": "3d_tmax_single_class_combi_loss_test",
-    "criterion": "single_class_combined_loss",
+    "checkpoints_dir": "/home/klug/output/perfusionCT-Net/checkpoints",
+    "experiment_name": "3d_dice_loss_test",
+    "criterion": "dice_loss",
     "loss_class_idx": [1]
   }
 }

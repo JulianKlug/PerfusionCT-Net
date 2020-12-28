@@ -187,9 +187,18 @@ Tested with 'single_class_combined_loss'
 |Standard 3D| Single Class Combined Loss | ![Dice Score](./static/journal/2.5D/3D_baseline_overall_dice.png "Dice over time with baseline 3D network")| 0.124896301 | 270 |
 |2.5D, convZ| Single Class Combined Loss | ![Dice Score](./static/journal/2.5D/2.5D_convZ_overall_Dice.png "Dice over time with convolutional 2.5D Net")| 0.234612097 | 186 |
 |2.5D, poolZ| Single Class Combined Loss | ![Dice Score](./static/journal/2.5D/2.5D_poolZ_overall_Dice.png "Dice over time with maxpooling 2.5D Net")| 0.249026386 | 170 |
+|Standard 3D| Dice Loss | ![Dice Score](./static/journal/2.5D/3D_Unet_DiceLoss_baseline.png "Dice over time with baseline 3D network")| 0.294284873 | 235 |
+|2.5D, convZ| Dice Loss | ![Dice Score](./static/journal/2.5D/2.5D_convZ_dice_loss_overallDice.png "Dice over time with convolutional 2.5D Net")| 0.22015214 | 279 |
+|2.5D, poolZ| Dice Loss | ![Dice Score](./static/journal/2.5D/2.5D_poolZ_dice_loss_overallDice.png "Dice over time with maxpooling 2.5D Net")| 0.220600992 | 326 |
 
-### TODO Recheck baseline
+## Issues
 
+- 2.5D shows sign of instability with pure dice loss function (predicts only 0 after some time)
+
+### Conclusion
+
+- No clear improvement of 2.5D over full 3D and is mostly slower
+- combined loss should be used for 2.5D network
 
 ##  Bayesian Skip Net
 
@@ -226,9 +235,9 @@ Experimental results on test and validation splits for the Geneva Stroke Dataset
 | Test | Unet+Method A | 0.181 +/- 0.154 | 0.132 +/- 0.187 | 0.278 +/- 0.324 |
 | Test | Unet+Method B | **0.212** +/- 0.136 | **0.289** +/- 0.333 | 0.188 +/- 0.219 |
 
-
+Please refer to the corresponding paper and talk for more details. 
 
 # TODO
 
-- Implement augmentation
-- implement combined loss
+- Try tensoflow yunet implementation
+- try nn-unet

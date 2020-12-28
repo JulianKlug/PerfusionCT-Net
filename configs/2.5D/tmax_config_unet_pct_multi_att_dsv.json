@@ -50,7 +50,7 @@
     "type":"seg",
     "continue_train": false,
     "which_epoch": -1,
-    "model_type": "unet_pct_multi_att_dsv_25D_poolZ",
+    "model_type": "unet_pct_multi_att_dsv_25D_convZ",
     "tensor_dim": "3D",
     "optim": "adam",
     "division_factor": 16,
@@ -63,9 +63,9 @@
     "feature_scale": 4,
     "gpu_ids": [0],
     "isTrain": true,
-    "checkpoints_dir": "./checkpoints",
-    "experiment_name": "25d_poolZ_tmax_single_class_combi_loss_test",
-    "criterion": "single_class_combined_loss"
+    "checkpoints_dir": "/home/klug/output/perfusionCT-Net/checkpoints",
+    "experiment_name": "25d_convZ_dice_loss",
+    "criterion": "dice_loss"
   }
 }
 
