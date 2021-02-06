@@ -208,6 +208,8 @@ Tested with 'single_class_combined_loss'
 
 Perfusion CT is widely used in acute ischemic stroke to determine eligibility for acute treatment, by defining an ischemic core and penumbra. In this work presented at the Brain Lesion Workshop at MICCAI 2020, we used a novel way of building on prior information for the automatic prediction and segmentation of stroke lesions. We reformulate the task to identify differences from a prior segmentation by extending a three-dimensional Attention Gated Unet with a skip connection allowing only an unchanged prior to bypass most of the network. We show that this technique improves results obtained by a baseline Attention Gated Unet on both the Geneva Stroke Dataset and the ISLES 2018 dataset.
 
+Data: perfusion maps, ncct, core prior 
+
 ### Video explanation
 
 Click on the image below:
@@ -237,7 +239,26 @@ Experimental results on test and validation splits for the Geneva Stroke Dataset
 
 Please refer to the corresponding paper and talk for more details. 
 
+##  Comparison to Yunet
+
+|Start Date|End Date  |
+|----------|----------|
+|2021-01-01|2020-01-30|
+
+Original paper by Yu et al [here.](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2762679)
+Code adaptation [here.](https://github.com/JulianKlug/stroke_prediction_yunet)
+
+Data: perfusion maps, ncct, penumbra prior, core prior 
+
+|Method| Best test dice (Class 1) |
+|----------|----------|
+|Yunet| 0.223 |
+|Bayesian Skip Net| 0.29 | 
+
+### Conclusion
+
+- Yunet offers no improvement over BayesianSkipNet
+
 # TODO
 
-- Try tensoflow yunet implementation
 - try nn-unet
