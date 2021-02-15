@@ -2,7 +2,7 @@ import torch.utils.data as data
 import numpy as np
 import datetime
 from sklearn.model_selection import train_test_split
-from .utils import validate_images
+from .utils import validate_images, binarize
 
 
 class GenevaStrokeDataset_pCT(data.Dataset):
@@ -64,9 +64,13 @@ class GenevaStrokeDataset_pCT(data.Dataset):
             self.raw_masks = np.load(dataset_path, allow_pickle=True)['brain_masks'][self.split_indices]
 
             try:
-                self.raw_labels = np.load(dataset_path, allow_pickle=True)['ct_lesion_GT'][self.split_indices].astype(np.uint8)
+                self.raw_labels = np.load(dataset_path, allow_pickle=True)['ct_lesion_GT'][self.split_indices]
             except:
-                self.raw_labels = np.load(dataset_path, allow_pickle=True)['lesion_GT'][self.split_indices].astype(np.uint8)
+                self.raw_labels = np.load(dataset_path, allow_pickle=True)['lesion_GT'][self.split_indices]
+
+            # prepare labels through binarization before conversion to int
+            self.raw_labels = binarize(self.raw_labels, 0.1).astype(np.uint8)
+
 
             # Make sure there is a channel dimension
             self.raw_labels = np.expand_dims(self.raw_labels, axis=-1)
@@ -98,9 +102,13 @@ class GenevaStrokeDataset_pCT(data.Dataset):
             split_specific_index = self.split_indices[index]
             input = np.load(self.dataset_path, allow_pickle=True)['ct_inputs'][split_specific_index, ..., self.channels].astype(np.int16)
             try:
-                target = np.load(self.dataset_path, allow_pickle=True)['ct_lesion_GT'][split_specific_index].astype(np.uint8)
+                target = np.load(self.dataset_path, allow_pickle=True)['ct_lesion_GT'][split_specific_index]
             except:
-                target = np.load(self.dataset_path, allow_pickle=True)['lesion_GT'][split_specific_index].astype(np.uint8)
+                target = np.load(self.dataset_path, allow_pickle=True)['lesion_GT'][split_specific_index]
+
+            # binarize target before uint conversion
+            target = binarize(target, 0.1).astype(np.uint8)
+
             mask = np.load(self.dataset_path, allow_pickle=True)['brain_masks'][split_specific_index]
 
             # Make sure there is a channel dimension

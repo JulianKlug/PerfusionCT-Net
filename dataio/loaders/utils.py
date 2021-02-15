@@ -8,3 +8,8 @@ def validate_images(image, label=None):
     if image.max() < 1e-6:
         print('Error: blank image, image.max = {0}'.format(image.max()))
         raise (Exception('blank image exception'))
+
+def binarize(data, threshold):
+    data[data < threshold] = 0
+    data[data >= threshold] = 1
+    return data
