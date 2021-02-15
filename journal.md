@@ -253,11 +253,32 @@ Data: perfusion maps, ncct, penumbra prior, core prior
 |Method| Best test dice (Class 1) |
 |----------|----------|
 |Yunet| 0.223 |
-|Bayesian Skip Net| 0.29 | 
+|Bayesian Skip Net| 0.212 | 
 
 ### Conclusion
 
 - Yunet offers no improvement over BayesianSkipNet
+
+##  HD images
+
+|Start Date|End Date  |
+|----------|----------|
+|2021-01-01|2020-01-15|
+
+Using not normalized images increases resolution. Max image size tolerated by infrastructure was 160x160x96. 
+
+Rationale: original Unet was used for slightly bigger images
+
+Data: perfusion maps
+Loss: focal Tversky
+
+|Method| Dice over time| Best validation dice (Class 1) | Best validation epoch |
+|----------|----------|----------|----------|
+|HD Standard Unet| ![Dice Score](./static/journal/hd_evaluation/dice_loss_160x160x96_pmaps_ftversky_unet.png "Dice over time with baseline 3D network")| 0.25 | 223 |
+
+### Conclusion
+
+
 
 # TODO
 
