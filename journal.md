@@ -283,3 +283,4 @@ Loss: focal Tversky
 # TODO
 
 - try nn-unet
+- try bayesian skip net on HD images
