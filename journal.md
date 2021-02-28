@@ -248,6 +248,7 @@ Please refer to the corresponding paper and talk for more details.
 Original paper by Yu et al [here.](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2762679)
 Code adaptation [here.](https://github.com/JulianKlug/stroke_prediction_yunet)
 
+
 Data: perfusion maps, ncct, penumbra prior, core prior 
 
 |Method| Best test dice (Class 1) |
@@ -278,9 +279,27 @@ Loss: focal Tversky
 
 ### Conclusion
 
+Probably no improvement but higher computational costs
 
+##  Comparison to NNunet
+
+|Start Date|End Date  |
+|----------|----------|
+|2021-02-01|2020-02-28|
+
+Code [here.](https://github.com/MIC-DKFZ/nnUNet)
+
+Data: perfusion maps, ncct, penumbra prior, core prior 
+
+|Method| Mean Best test dice (Class 1) |
+|----------|----------|
+|nnUnet| 0.272 |
+
+### Conclusion
+
+Nnunet probably offers small performance improvement
 
 # TODO
 
-- try nn-unet
+- try tranUnet
 - try bayesian skip net on HD images
