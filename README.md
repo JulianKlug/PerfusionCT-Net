@@ -1,7 +1,9 @@
 # PerfusionCT-Net
 A UNet for the analysis of perfusion CT imaging in the setting of acute ischemic stroke. 
 
-Please cite as: Klug, J. et al. Bayesian Skip Net: Building on Prior Information for the Prediction and Segmentation of Stroke Lesions. in Brainlesion: Glioma, Multiple Sclerosis, Stroke and Traumatic Brain Injuries (eds. Crimi, A. & Bakas, S.) 168–180 (Springer International Publishing, 2021). doi:10.1007/978-3-030-72084-1_16.
+Please cite as: _Klug, J. et al. Bayesian Skip Net: Building on Prior Information for the Prediction and Segmentation of Stroke Lesions. in Brainlesion: Glioma, Multiple Sclerosis, Stroke and Traumatic Brain Injuries (eds. Crimi, A. & Bakas, S.) 168–180 (Springer International Publishing, 2021). doi:10.1007/978-3-030-72084-1_16._
+
+Further work: [BayesianSkipNet](https://github.com/JulianKlug/BayesianSkipNet) 
 
 
 
